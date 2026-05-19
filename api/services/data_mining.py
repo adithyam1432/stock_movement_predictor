@@ -1,0 +1,110 @@
+import pandas as pd
+from sklearn.cluster import KMeans
+from .linear_algebra import create_vectors
+
+def cluster_candles(df: pd.DataFrame, n_clusters=5):
+    """
+    Uses KMeans to cluster all candles into n_clusters based on their vector representation.
+    """
+    vectors = create_vectors(df)
+    
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+    clusters = kmeans.fit_predict(vectors)
+    
+    df['Cluster'] = clusters
+    
+    # Calculate cluster centroids directly from raw values for interpretability
+    cluster_summary = []
+    for i in range(n_clusters):
+        cluster_data = df[df['Cluster'] == i]
+        size = len(cluster_data)
+        
+        # Determine primary pattern type for this cluster
+        if size > 0:
+            bullish_ratio = (cluster_data['Candle_Type'] == 'Bullish').mean()
+            bearish_ratio = (cluster_data['Candle_Type'] == 'Bearish').mean()
+            
+            if bullish_ratio > 0.6:
+                pattern = "Strong Bullish"
+            elif bearish_ratio > 0.6:
+                pattern = "Strong Bearish"
+            else:
+                pattern = "Neutral / Doji"
+                
+            centroid_open = cluster_data['Open'].mean()
+            centroid_close = cluster_data['Close'].mean()
+        else:
+            pattern = "Empty"
+            centroid_open, centroid_close = 0, 0
+            
+        cluster_summary.append({
+            "cluster_id": i,
+            "size": size,
+            "centroid_open": round(centroid_open, 2),
+            "centroid_close": round(centroid_close, 2),
+            "pattern_type": pattern
+        })
+        
+    # Sort clusters by size
+    cluster_summary.sort(key=lambda x: x['size'], reverse=True)
+    return cluster_summary, df['Cluster'].tolist()
+
+def analyze_timeframes(df: pd.DataFrame):
+    """
+    Calculates bullish/bearish/neutral frequencies for each timeframe.
+    """
+    timeframe_stats = []
+    
+    grouped = df.groupby('Time')
+    for time, group in grouped:
+        total = len(group)
+        bullish = len(group[group['Candle_Type'] == 'Bullish'])
+        bearish = len(group[group['Candle_Type'] == 'Bearish'])
+        neutral = len(group[group['Candle_Type'] == 'Neutral'])
+        
+        timeframe_stats.append({
+            "time": time,
+            "total": total,
+            "bullish": bullish,
+            "bearish": bearish,
+            "neutral": neutral,
+            "bullish_ratio": round(bullish / total, 2) if total > 0 else 0,
+            "bearish_ratio": round(bearish / total, 2) if total > 0 else 0
+        })
+        
+    return timeframe_stats
+
+def analyze_weekday_dominance(df: pd.DataFrame):
+    """
+    Calculates bullish/bearish/neutral frequencies grouped by Weekday and Time.
+    Returns a dictionary mapping weekday to its timeframe statistics.
+    """
+    weekday_stats = {}
+    if 'Weekday' not in df.columns:
+        return weekday_stats
+        
+    grouped = df.groupby(['Weekday', 'Time'])
+    
+    for (weekday, time), group in grouped:
+        if weekday not in weekday_stats:
+            weekday_stats[weekday] = []
+            
+        total = len(group)
+        bullish = len(group[group['Candle_Type'] == 'Bullish'])
+        bearish = len(group[group['Candle_Type'] == 'Bearish'])
+        neutral = len(group[group['Candle_Type'] == 'Neutral'])
+        
+        weekday_stats[weekday].append({
+            "time": time,
+            "total": total,
+            "bullish": bullish,
+            "bearish": bearish,
+            "neutral": neutral,
+            "bullish_ratio": round(bullish / total, 2) if total > 0 else 0,
+            "bearish_ratio": round(bearish / total, 2) if total > 0 else 0
+        })
+        
+    for weekday in weekday_stats:
+        weekday_stats[weekday] = sorted(weekday_stats[weekday], key=lambda x: x['time'])
+        
+    return weekday_stats

@@ -1,0 +1,190 @@
+@import "tailwindcss";
+
+:root {
+  --color-neo-bg: #eef2f6; /* Premium light blue-gray background */
+  --color-neo-shadow1: #d1d9e6; 
+  --color-neo-shadow2: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --border-color: rgba(203, 213, 225, 0.4);
+  --inset-bg: #e2e8f0;
+}
+
+.dark {
+  --color-neo-bg: #212428; 
+  --color-neo-shadow1: #191b1e; 
+  --color-neo-shadow2: #292d32;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --border-color: rgba(51, 65, 85, 0.4);
+  --inset-bg: #1e2024;
+}
+
+@theme {
+  --color-neo-bg: var(--color-neo-bg);
+  --color-primary: #3B82F6;
+  --color-secondary: #8B5CF6;
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-neo-bg);
+    color: var(--text-primary);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none; 
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Webkit custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--text-tertiary);
+    opacity: 0.3;
+    border-radius: 10px;
+  }
+}
+
+@layer components {
+  /* Soft extrusion (Cards) */
+  .neo-card {
+    background: var(--color-neo-bg);
+    border-radius: 1.5rem;
+    box-shadow: 
+      8px 8px 16px var(--color-neo-shadow1), 
+      -8px -8px 16px var(--color-neo-shadow2);
+    transition: all 0.3s ease;
+  }
+
+  /* Soft indentation (Inputs, Dropzones, Data Wells) */
+  .neo-inset {
+    background: var(--inset-bg);
+    border-radius: 1rem;
+    box-shadow: 
+      inset 6px 6px 12px var(--color-neo-shadow1), 
+      inset -6px -6px 12px var(--color-neo-shadow2);
+    transition: all 0.3s ease;
+  }
+
+  /* Interactive Buttons */
+  .neo-button {
+    background: var(--color-neo-bg);
+    border-radius: 0.75rem;
+    box-shadow: 
+      5px 5px 10px var(--color-neo-shadow1), 
+      -5px -5px 10px var(--color-neo-shadow2);
+    transition: all 0.2s ease;
+  }
+  
+  .neo-button:active, .neo-button.active {
+    box-shadow: 
+      inset 4px 4px 8px var(--color-neo-shadow1), 
+      inset -4px -4px 8px var(--color-neo-shadow2);
+    color: var(--color-primary);
+  }
+
+  /* Specialized Pill Button for active nav states */
+  .neo-pill {
+    background: var(--color-neo-bg);
+    border-radius: 9999px;
+    box-shadow: 
+      3px 3px 6px var(--color-neo-shadow1), 
+      -3px -3px 6px var(--color-neo-shadow2);
+  }
+  
+  .neo-pill.active {
+    box-shadow: 
+      inset 3px 3px 6px var(--color-neo-shadow1), 
+      inset -3px -3px 6px var(--color-neo-shadow2);
+  }
+}
+
+/* Master class overrides for theme toggling */
+.text-gray-100 { color: var(--text-primary) !important; }
+.text-gray-200 { color: var(--text-primary) !important; }
+.text-gray-300 { color: var(--text-secondary) !important; }
+.text-gray-400 { color: var(--text-secondary) !important; }
+.text-gray-500 { color: var(--text-tertiary) !important; }
+
+.bg-\[\#212428\] { background-color: var(--color-neo-bg) !important; }
+.bg-\[\#1e2024\] { background-color: var(--inset-bg) !important; }
+.bg-\[\#151719\] { background-color: var(--color-neo-bg) !important; }
+
+.border-gray-700\/30, .border-gray-700\/50, .border-gray-700 {
+  border-color: var(--border-color) !important;
+}
+
+select {
+  background-color: var(--inset-bg) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Growing line loader animations */
+@keyframes drawLine {
+  from {
+    stroke-dashoffset: 360;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.growing-line {
+  stroke-dasharray: 360;
+  stroke-dashoffset: 360;
+  animation: drawLine 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.6));
+}
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loader-dot {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fadeInScale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.8));
+}
+
+@keyframes fadeInLabelText {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loader-text {
+  opacity: 0;
+  font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  fill: #10B981;
+  filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6));
+  animation: fadeInLabelText 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
