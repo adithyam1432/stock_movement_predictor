@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { UploadCloud, Clock, CheckCircle, AlertTriangle, AlertCircle, Trash2, Sparkles, ArrowRight, Table, ShieldCheck, Database, RefreshCw, Layers } from 'lucide-react';
 import axios from 'axios';
 import { getApiBaseUrl } from '../utils/apiConfig';
+import logoImg from '../assets/logo.png';
 
 const UploadCSV = ({ setData, setLoading, setActiveTab }) => {
   const [timeframe, setTimeframe] = useState('15m');
@@ -252,7 +253,19 @@ const UploadCSV = ({ setData, setLoading, setActiveTab }) => {
   }
 
   return (
-    <div className="h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 w-full px-4">
+    <div className="h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 w-full px-4 relative">
+      
+      {/* Premium App Logo in the top-left corner */}
+      <div className="absolute top-0 left-0 z-20 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-[#1e2024]/80 backdrop-blur-md border border-gray-700/50 p-1 flex items-center justify-center shadow-lg neo-card">
+          <img src={logoImg} alt="QuantEdge AI Logo" className="w-full h-full object-contain rounded-lg" />
+        </div>
+        <div className="hidden sm:flex flex-col text-left">
+          <span className="text-xs font-bold text-gray-200 tracking-wider">QuantEdge AI</span>
+          <span className="text-[9px] font-semibold text-primary uppercase tracking-widest leading-none mt-0.5">DATA MINING</span>
+        </div>
+      </div>
+
       <div className="text-center mb-8 w-full max-w-2xl mx-auto">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight text-gray-100">Upload Market Data</h2>
         <p className="text-gray-400 max-w-lg mx-auto text-sm md:text-base font-medium">
