@@ -35,6 +35,8 @@ const Patterns = ({ data, analysisMode, selectedWeekday }) => {
       
       let centroid_open = 0;
       let centroid_close = 0;
+      let centroid_high = 0;
+      let centroid_low = 0;
       let pattern_type = "Empty";
       
       // Look up default cluster characteristics if empty, or calculate
@@ -43,25 +45,68 @@ const Patterns = ({ data, analysisMode, selectedWeekday }) => {
       if (size > 0) {
         const totalOpen = group.reduce((sum, item) => sum + (item.open || 0), 0);
         const totalClose = group.reduce((sum, item) => sum + (item.close || 0), 0);
+        const totalHigh = group.reduce((sum, item) => sum + (item.high || 0), 0);
+        const totalLow = group.reduce((sum, item) => sum + (item.low || 0), 0);
+        
         centroid_open = totalOpen / size;
         centroid_close = totalClose / size;
+        centroid_high = totalHigh / size;
+        centroid_low = totalLow / size;
         
-        const bodyPct = Math.abs(centroid_close - centroid_open) / (centroid_open || 1);
+        const body = Math.abs(centroid_close - centroid_open);
+        const upperWick = centroid_high - Math.max(centroid_open, centroid_close);
+        const lowerWick = Math.min(centroid_open, centroid_close) - centroid_low;
+        const totalRange = (centroid_high - centroid_low) || 1;
+        const bodyPct = body / (centroid_open || 1);
         const isBullishCentroid = centroid_close >= centroid_open;
         
-        if (bodyPct < 0.0002) {
-          pattern_type = "Classic Doji / Neutral";
-        } else if (bodyPct < 0.001) {
-          pattern_type = isBullishCentroid ? "Bullish Spinning Top" : "Bearish Spinning Top";
+        if (bodyPct < 0.0003) {
+          // Dojis
+          if (upperWick / totalRange > 0.6) {
+            pattern_type = "Gravestone Doji";
+          } else if (lowerWick / totalRange > 0.6) {
+            pattern_type = "Dragonfly Doji";
+          } else if (upperWick / totalRange > 0.2 && lowerWick / totalRange > 0.2) {
+            pattern_type = "Long-Legged Doji";
+          } else {
+            pattern_type = "Classic Doji / Neutral";
+          }
+        } else if (bodyPct < 0.002) {
+          // Spinning Tops & High Waves
+          if (upperWick > body && lowerWick > body) {
+            pattern_type = "High Wave Candle";
+          } else {
+            pattern_type = isBullishCentroid ? "Bullish Spinning Top" : "Bearish Spinning Top";
+          }
         } else if (bodyPct < 0.01) {
-          pattern_type = isBullishCentroid ? "Short Bullish" : "Short Bearish";
+          // Short/Standard Candles
+          if (isBullishCentroid) {
+            if (lowerWick / (body || 1) > 0.5 && upperWick / (body || 1) < 0.1) {
+              pattern_type = "Bullish Hammer";
+            } else if (upperWick / (body || 1) > 0.5 && lowerWick / (body || 1) < 0.1) {
+              pattern_type = "Inverted Hammer";
+            } else {
+              pattern_type = "Short Bullish";
+            }
+          } else {
+            if (upperWick / (body || 1) > 0.5 && lowerWick / (body || 1) < 0.1) {
+              pattern_type = "Shooting Star";
+            } else if (lowerWick / (body || 1) > 0.5 && upperWick / (body || 1) < 0.1) {
+              pattern_type = "Hanging Man";
+            } else {
+              pattern_type = "Short Bearish";
+            }
+          }
         } else {
+          // Long/Marubozu Candles
           pattern_type = isBullishCentroid ? "Long Bullish (Marubozu)" : "Long Bearish (Marubozu)";
         }
       } else if (originalCluster) {
         // Fall back to original definition if absolutely no data exists for this day
         centroid_open = originalCluster.centroid_open;
         centroid_close = originalCluster.centroid_close;
+        centroid_high = originalCluster.centroid_high || (centroid_open * 1.002);
+        centroid_low = originalCluster.centroid_low || (centroid_open * 0.998);
         pattern_type = originalCluster.pattern_type;
       }
       
@@ -70,6 +115,8 @@ const Patterns = ({ data, analysisMode, selectedWeekday }) => {
         size,
         centroid_open,
         centroid_close,
+        centroid_high,
+        centroid_low,
         pattern_type
       };
     });
@@ -105,10 +152,21 @@ const Patterns = ({ data, analysisMode, selectedWeekday }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
         {displayClusters.map((cluster) => {
-          const isBullish = cluster.centroid_close >= cluster.centroid_open;
-          const bodyHeight = Math.max(Math.abs(cluster.centroid_close - cluster.centroid_open) * 20, 10);
-          const topWick = isBullish ? 15 : 5;
-          const bottomWick = isBullish ? 5 : 15;
+          const open = cluster.centroid_open;
+          const close = cluster.centroid_close;
+          const high = cluster.centroid_high || Math.max(open, close) * 1.002;
+          const low = cluster.centroid_low || Math.min(open, close) * 0.998;
+          
+          const maxPrice = Math.max(open, close);
+          const minPrice = Math.min(open, close);
+          const body = Math.max(Math.abs(close - open), 0.01);
+          
+          const rawTopWick = ((high - maxPrice) / body) * 20;
+          const rawBottomWick = ((minPrice - low) / body) * 20;
+          
+          const topWick = Math.min(Math.max(rawTopWick, 4), 35);
+          const bottomWick = Math.min(Math.max(rawBottomWick, 4), 35);
+          const bodyHeight = Math.min(Math.max((body / open) * 2000, 10), 120);
           
           return (
             <div key={cluster.cluster_id} className="neo-card p-6 flex flex-col group">

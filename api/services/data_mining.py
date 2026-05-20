@@ -23,27 +23,62 @@ def cluster_candles(df: pd.DataFrame, n_clusters=5):
         if size > 0:
             centroid_open = cluster_data['Open'].mean()
             centroid_close = cluster_data['Close'].mean()
+            centroid_high = cluster_data['High'].mean()
+            centroid_low = cluster_data['Low'].mean()
             
-            body_pct = abs(centroid_close - centroid_open) / (centroid_open if centroid_open > 0 else 1)
+            body = abs(centroid_close - centroid_open)
+            upper_wick = centroid_high - max(centroid_open, centroid_close)
+            lower_wick = min(centroid_open, centroid_close) - centroid_low
+            total_range = centroid_high - centroid_low if (centroid_high - centroid_low) > 0 else 1
+            body_pct = body / (centroid_open if centroid_open > 0 else 1)
             is_bullish_centroid = centroid_close >= centroid_open
             
-            if body_pct < 0.0002:
-                pattern = "Classic Doji / Neutral"
-            elif body_pct < 0.001:
-                pattern = "Bullish Spinning Top" if is_bullish_centroid else "Bearish Spinning Top"
+            if body_pct < 0.0003:
+                # Dojis
+                if upper_wick / total_range > 0.6:
+                    pattern = "Gravestone Doji"
+                elif lower_wick / total_range > 0.6:
+                    pattern = "Dragonfly Doji"
+                elif upper_wick / total_range > 0.2 and lower_wick / total_range > 0.2:
+                    pattern = "Long-Legged Doji"
+                else:
+                    pattern = "Classic Doji / Neutral"
+            elif body_pct < 0.002:
+                # Spinning Tops & High Waves
+                if upper_wick > body and lower_wick > body:
+                    pattern = "High Wave Candle"
+                else:
+                    pattern = "Bullish Spinning Top" if is_bullish_centroid else "Bearish Spinning Top"
             elif body_pct < 0.01:
-                pattern = "Short Bullish" if is_bullish_centroid else "Short Bearish"
+                # Short/Standard Candles
+                if is_bullish_centroid:
+                    if lower_wick / (body if body > 0 else 1) > 0.5 and upper_wick / (body if body > 0 else 1) < 0.1:
+                        pattern = "Bullish Hammer"
+                    elif upper_wick / (body if body > 0 else 1) > 0.5 and lower_wick / (body if body > 0 else 1) < 0.1:
+                        pattern = "Inverted Hammer"
+                    else:
+                        pattern = "Short Bullish"
+                else:
+                    if upper_wick / (body if body > 0 else 1) > 0.5 and lower_wick / (body if body > 0 else 1) < 0.1:
+                        pattern = "Shooting Star"
+                    elif lower_wick / (body if body > 0 else 1) > 0.5 and upper_wick / (body if body > 0 else 1) < 0.1:
+                        pattern = "Hanging Man"
+                    else:
+                        pattern = "Short Bearish"
             else:
+                # Long/Marubozu Candles
                 pattern = "Long Bullish (Marubozu)" if is_bullish_centroid else "Long Bearish (Marubozu)"
         else:
             pattern = "Empty"
-            centroid_open, centroid_close = 0, 0
+            centroid_open, centroid_close, centroid_high, centroid_low = 0, 0, 0, 0
             
         cluster_summary.append({
             "cluster_id": i,
             "size": size,
             "centroid_open": round(centroid_open, 2),
             "centroid_close": round(centroid_close, 2),
+            "centroid_high": round(centroid_high, 2),
+            "centroid_low": round(centroid_low, 2),
             "pattern_type": pattern
         })
         
