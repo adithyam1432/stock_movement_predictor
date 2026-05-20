@@ -47,10 +47,10 @@ async def analyze_csv(file: UploadFile = File(...), timeframe: str = Form(...)):
         similarity_data, timeframes = compute_similarity_matrix(df, metric='cosine')
         weekday_matrices = compute_weekday_similarity_matrix(df, metric='cosine')
         
-        # 4.b PCA for 2D visualization (We'll return a sample of 500 max to avoid massive payload)
+        # 4.b PCA for 2D visualization (We'll return a sample of 3000 max to completely cover Weekday Mode datasets)
         pca_df = df.copy()
-        if len(pca_df) > 500:
-            pca_df = pca_df.sample(500, random_state=42)
+        if len(pca_df) > 3000:
+            pca_df = pca_df.sample(3000, random_state=42)
             
         pca_points = apply_pca(pca_df, n_components=2)
         
@@ -60,7 +60,10 @@ async def analyze_csv(file: UploadFile = File(...), timeframe: str = Form(...)):
                 "x": round(point[0], 3),
                 "y": round(point[1], 3),
                 "cluster": int(pca_df['Cluster'].iloc[i]) if 'Cluster' in pca_df.columns else 0,
-                "type": pca_df['Candle_Type'].iloc[i]
+                "type": pca_df['Candle_Type'].iloc[i],
+                "weekday": str(pca_df['Weekday'].iloc[i]) if 'Weekday' in pca_df.columns else "",
+                "open": float(pca_df['Open'].iloc[i]) if 'Open' in pca_df.columns else 0.0,
+                "close": float(pca_df['Close'].iloc[i]) if 'Close' in pca_df.columns else 0.0
             })
             
         # 5. AI Insights Engine

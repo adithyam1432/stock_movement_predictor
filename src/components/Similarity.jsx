@@ -27,6 +27,14 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
 
   const COLORS = ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6'];
 
+  const filteredPcaData = useMemo(() => {
+    if (!pca_data) return [];
+    if (analysisMode === 'weekday') {
+      return pca_data.filter(item => item.weekday === selectedWeekday);
+    }
+    return pca_data;
+  }, [pca_data, analysisMode, selectedWeekday]);
+
   return (
     <div className="h-full flex flex-col space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-4">
       <div className="px-2">
@@ -57,8 +65,8 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
                   contentStyle={{ backgroundColor: 'var(--color-neo-bg)', borderColor: 'var(--border-color)', borderRadius: '12px', boxShadow: '5px 5px 15px var(--color-neo-shadow1)' }}
                   itemStyle={{ color: 'var(--text-primary)' }}
                 />
-                <Scatter name="Candles" data={pca_data} fill="#8884d8">
-                  {pca_data.map((entry, index) => (
+                <Scatter name="Candles" data={filteredPcaData} fill="#8884d8">
+                  {filteredPcaData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[entry.cluster % COLORS.length]} />
                   ))}
                 </Scatter>

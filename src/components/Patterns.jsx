@@ -1,10 +1,82 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Target, Maximize2, Minimize2 } from 'lucide-react';
 
-const Patterns = ({ data }) => {
+const Patterns = ({ data, analysisMode, selectedWeekday }) => {
   if (!data) return null;
 
-  const { cluster_summary } = data;
+  const { pca_data, cluster_summary } = data;
+
+  const displayClusters = useMemo(() => {
+    if (!pca_data) return cluster_summary || [];
+
+    // Group pca_data by cluster
+    const clusterGroups = {};
+    
+    // Filter pca_data if we are in weekday mode
+    const activeCandles = analysisMode === 'weekday'
+      ? pca_data.filter(item => item.weekday === selectedWeekday)
+      : pca_data;
+      
+    // Initialize groups for 5 clusters
+    for (let i = 0; i < 5; i++) {
+      clusterGroups[i] = [];
+    }
+    
+    activeCandles.forEach(item => {
+      if (clusterGroups[item.cluster] !== undefined) {
+        clusterGroups[item.cluster].push(item);
+      }
+    });
+    
+    // Build cluster summaries
+    const summaries = Object.keys(clusterGroups).map(clusterId => {
+      const group = clusterGroups[clusterId];
+      const size = group.length;
+      
+      let centroid_open = 0;
+      let centroid_close = 0;
+      let pattern_type = "Empty";
+      
+      // Look up default cluster characteristics if empty, or calculate
+      const originalCluster = (cluster_summary || []).find(c => c.cluster_id === parseInt(clusterId));
+      
+      if (size > 0) {
+        const totalOpen = group.reduce((sum, item) => sum + (item.open || 0), 0);
+        const totalClose = group.reduce((sum, item) => sum + (item.close || 0), 0);
+        centroid_open = totalOpen / size;
+        centroid_close = totalClose / size;
+        
+        const bullishCount = group.filter(item => item.type === 'Bullish').length;
+        const bearishCount = group.filter(item => item.type === 'Bearish').length;
+        const bullishRatio = bullishCount / size;
+        const bearishRatio = bearishCount / size;
+        
+        if (bullishRatio > 0.6) {
+          pattern_type = "Strong Bullish";
+        } else if (bearishRatio > 0.6) {
+          pattern_type = "Strong Bearish";
+        } else {
+          pattern_type = "Neutral / Doji";
+        }
+      } else if (originalCluster) {
+        // Fall back to original definition if absolutely no data exists for this day
+        centroid_open = originalCluster.centroid_open;
+        centroid_close = originalCluster.centroid_close;
+        pattern_type = originalCluster.pattern_type;
+      }
+      
+      return {
+        cluster_id: parseInt(clusterId),
+        size,
+        centroid_open,
+        centroid_close,
+        pattern_type
+      };
+    });
+    
+    // Sort by size descending
+    return summaries.sort((a, b) => b.size - a.size);
+  }, [pca_data, cluster_summary, analysisMode, selectedWeekday]);
 
   const getPatternIcon = (patternType) => {
     if (patternType.includes('Bullish')) return <Maximize2 className="text-success" size={20} />;
@@ -21,12 +93,18 @@ const Patterns = ({ data }) => {
   return (
     <div className="h-full flex flex-col space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-10">
       <div className="px-2">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-1">KMeans Cluster Patterns</h2>
-        <p className="text-sm md:text-base text-gray-400">Hidden market structures identified through unsupervised learning.</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-1">
+          {analysisMode === 'weekday' ? `${selectedWeekday} KMeans Cluster Patterns` : 'KMeans Cluster Patterns'}
+        </h2>
+        <p className="text-sm md:text-base text-gray-400">
+          {analysisMode === 'weekday'
+            ? `Hidden structures specifically representing ${selectedWeekday} trading session patterns.`
+            : 'Hidden market structures identified through unsupervised learning.'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-        {cluster_summary.map((cluster) => {
+        {displayClusters.map((cluster) => {
           const isBullish = cluster.centroid_close >= cluster.centroid_open;
           const bodyHeight = Math.max(Math.abs(cluster.centroid_close - cluster.centroid_open) * 20, 10);
           const topWick = isBullish ? 15 : 5;

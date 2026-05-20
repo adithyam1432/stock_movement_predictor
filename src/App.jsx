@@ -124,7 +124,7 @@ function App() {
       case 'similarity':
         return <Similarity data={data} analysisMode={analysisMode} selectedWeekday={selectedWeekday} />;
       case 'patterns':
-        return <Patterns data={data} />;
+        return <Patterns data={data} analysisMode={analysisMode} selectedWeekday={selectedWeekday} />;
       default:
         return <Dashboard data={data} analysisMode={analysisMode} selectedWeekday={selectedWeekday} />;
     }
