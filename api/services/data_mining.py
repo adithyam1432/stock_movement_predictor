@@ -21,18 +21,20 @@ def cluster_candles(df: pd.DataFrame, n_clusters=5):
         
         # Determine primary pattern type for this cluster
         if size > 0:
-            bullish_ratio = (cluster_data['Candle_Type'] == 'Bullish').mean()
-            bearish_ratio = (cluster_data['Candle_Type'] == 'Bearish').mean()
-            
-            if bullish_ratio > 0.6:
-                pattern = "Strong Bullish"
-            elif bearish_ratio > 0.6:
-                pattern = "Strong Bearish"
-            else:
-                pattern = "Neutral / Doji"
-                
             centroid_open = cluster_data['Open'].mean()
             centroid_close = cluster_data['Close'].mean()
+            
+            body_pct = abs(centroid_close - centroid_open) / (centroid_open if centroid_open > 0 else 1)
+            is_bullish_centroid = centroid_close >= centroid_open
+            
+            if body_pct < 0.0002:
+                pattern = "Classic Doji / Neutral"
+            elif body_pct < 0.001:
+                pattern = "Bullish Spinning Top" if is_bullish_centroid else "Bearish Spinning Top"
+            elif body_pct < 0.01:
+                pattern = "Short Bullish" if is_bullish_centroid else "Short Bearish"
+            else:
+                pattern = "Long Bullish (Marubozu)" if is_bullish_centroid else "Long Bearish (Marubozu)"
         else:
             pattern = "Empty"
             centroid_open, centroid_close = 0, 0

@@ -46,17 +46,17 @@ const Patterns = ({ data, analysisMode, selectedWeekday }) => {
         centroid_open = totalOpen / size;
         centroid_close = totalClose / size;
         
-        const bullishCount = group.filter(item => item.type === 'Bullish').length;
-        const bearishCount = group.filter(item => item.type === 'Bearish').length;
-        const bullishRatio = bullishCount / size;
-        const bearishRatio = bearishCount / size;
+        const bodyPct = Math.abs(centroid_close - centroid_open) / (centroid_open || 1);
+        const isBullishCentroid = centroid_close >= centroid_open;
         
-        if (bullishRatio > 0.6) {
-          pattern_type = "Strong Bullish";
-        } else if (bearishRatio > 0.6) {
-          pattern_type = "Strong Bearish";
+        if (bodyPct < 0.0002) {
+          pattern_type = "Classic Doji / Neutral";
+        } else if (bodyPct < 0.001) {
+          pattern_type = isBullishCentroid ? "Bullish Spinning Top" : "Bearish Spinning Top";
+        } else if (bodyPct < 0.01) {
+          pattern_type = isBullishCentroid ? "Short Bullish" : "Short Bearish";
         } else {
-          pattern_type = "Neutral / Doji";
+          pattern_type = isBullishCentroid ? "Long Bullish (Marubozu)" : "Long Bearish (Marubozu)";
         }
       } else if (originalCluster) {
         // Fall back to original definition if absolutely no data exists for this day
