@@ -42,7 +42,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
   );
 
   return (
-    <div className="h-full flex flex-col space-y-6 lg:space-y-8 max-w-7xl mx-auto">
+    <div className="w-full flex flex-col space-y-5 lg:space-y-8 max-w-7xl mx-auto pb-10">
       <div className="flex items-center justify-between px-2">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-1">
@@ -88,9 +88,9 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 flex-1 pb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-6 lg:gap-8 flex-1">
         {/* Insight Engine Panel */}
-        <div className="neo-card p-6 lg:col-span-2 flex flex-col">
+        <div className="neo-card p-4 md:p-6 lg:col-span-2 flex flex-col">
           <div className="flex items-center gap-3 mb-6 border-b border-gray-700/30 pb-4">
             <div className="neo-inset p-2 rounded-full text-secondary">
               <Zap size={20} />
@@ -113,19 +113,19 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
         </div>
 
         {/* Global Distribution */}
-        <div className="neo-card p-6 flex flex-col h-[450px] overflow-y-auto w-full">
+        <div className="neo-card p-4 md:p-6 flex flex-col h-[350px] md:h-[450px] overflow-y-auto w-full">
           <h3 className="text-xl font-bold mb-6 text-gray-100 flex-shrink-0">
             {analysisMode === 'weekday' ? `${selectedWeekday} Distribution` : 'Global Distribution'}
           </h3>
-          <div className="flex-1 w-full neo-inset rounded-xl p-4 relative flex items-center justify-center min-h-[280px]">
+          <div className="flex-1 w-full neo-inset rounded-xl p-2 md:p-4 relative flex items-center justify-center min-h-[220px] md:min-h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={85}
+                  innerRadius={50}
+                  outerRadius={75}
                   paddingAngle={6}
                   dataKey="value"
                   stroke="none"

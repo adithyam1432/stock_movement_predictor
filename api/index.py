@@ -63,9 +63,7 @@ async def analyze_csv(file: UploadFile = File(...), timeframe: str = Form(...)):
                 "type": pca_df['Candle_Type'].iloc[i],
                 "weekday": str(pca_df['Weekday'].iloc[i]) if 'Weekday' in pca_df.columns else "",
                 "open": float(pca_df['Open'].iloc[i]) if 'Open' in pca_df.columns else 0.0,
-                "close": float(pca_df['Close'].iloc[i]) if 'Close' in pca_df.columns else 0.0,
-                "high": float(pca_df['High'].iloc[i]) if 'High' in pca_df.columns else 0.0,
-                "low": float(pca_df['Low'].iloc[i]) if 'Low' in pca_df.columns else 0.0
+                "close": float(pca_df['Close'].iloc[i]) if 'Close' in pca_df.columns else 0.0
             })
             
         # 5. AI Insights Engine

@@ -188,3 +188,47 @@ select {
   filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.6));
   animation: fadeInLabelText 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
+
+/* Hide scrollbar utility */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe bottom padding for mobile nav */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Smooth scroll on all scroll containers */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-specific reductions */
+@media (max-width: 640px) {
+  .neo-card {
+    border-radius: 1rem;
+    box-shadow:
+      5px 5px 10px var(--color-neo-shadow1),
+      -5px -5px 10px var(--color-neo-shadow2);
+  }
+
+  .neo-inset {
+    border-radius: 0.75rem;
+    box-shadow:
+      inset 4px 4px 8px var(--color-neo-shadow1),
+      inset -4px -4px 8px var(--color-neo-shadow2);
+  }
+
+  .neo-button {
+    border-radius: 0.625rem;
+    box-shadow:
+      3px 3px 6px var(--color-neo-shadow1),
+      -3px -3px 6px var(--color-neo-shadow2);
+  }
+}
+

@@ -29,7 +29,7 @@ const Analytics = ({ data, analysisMode, selectedWeekday }) => {
   const strongestBearish = currentStats?.length ? [...currentStats].sort((a, b) => b.bearish_ratio - a.bearish_ratio)[0] : null;
 
   return (
-    <div className="h-full flex flex-col space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-4">
+    <div className="w-full flex flex-col space-y-5 lg:space-y-8 max-w-7xl mx-auto pb-10">
       <div className="px-2">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-1">
           {analysisMode === 'weekday' ? `${selectedWeekday} Timeframe Analytics` : 'Timeframe Analytics'}
@@ -59,25 +59,25 @@ const Analytics = ({ data, analysisMode, selectedWeekday }) => {
         </div>
       </div>
 
-      <div className="neo-card p-4 md:p-6 flex-1 min-h-[400px] md:min-h-[500px] flex flex-col">
+      <div className="neo-card p-4 md:p-6 flex-1 min-h-[300px] md:min-h-[500px] flex flex-col">
         <h3 className="text-lg md:text-xl font-bold mb-4 md:mb-6 text-gray-100 px-2">Timeframe Distribution (Counts)</h3>
         <div className="flex-1 w-full neo-inset rounded-xl p-2 md:p-6 relative">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={chartData}
-              margin={{ top: 20, right: 10, left: -20, bottom: 40 }}
+              margin={{ top: 20, right: 5, left: -25, bottom: 40 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
               <XAxis 
                 dataKey="name" 
                 stroke="var(--text-tertiary)" 
-                tick={{fill: 'var(--text-secondary)', fontSize: 12}} 
+                tick={{fill: 'var(--text-secondary)', fontSize: 10}} 
                 angle={-45} 
                 textAnchor="end"
-                height={60}
-                tickMargin={10}
+                height={55}
+                tickMargin={8}
               />
-              <YAxis stroke="var(--text-tertiary)" tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
+              <YAxis stroke="var(--text-tertiary)" tick={{fill: 'var(--text-secondary)', fontSize: 10}} />
               <RechartsTooltip 
                 cursor={{fill: 'rgba(255,255,255,0.02)'}}
                 contentStyle={{ backgroundColor: 'var(--color-neo-bg)', borderColor: 'var(--border-color)', borderRadius: '12px', boxShadow: '5px 5px 15px var(--color-neo-shadow1)', color: 'var(--text-primary)' }}

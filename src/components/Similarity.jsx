@@ -36,7 +36,7 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
   }, [pca_data, analysisMode, selectedWeekday]);
 
   return (
-    <div className="h-full flex flex-col space-y-6 lg:space-y-8 max-w-7xl mx-auto pb-4">
+    <div className="w-full flex flex-col space-y-5 lg:space-y-8 max-w-7xl mx-auto pb-10">
       <div className="px-2">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-100 mb-1">
           {analysisMode === 'weekday' ? `${selectedWeekday} Linear Algebra` : 'Linear Algebra'}
@@ -50,16 +50,16 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 flex-1">
         {/* PCA Scatter Plot */}
-        <div className="neo-card p-5 md:p-6 flex flex-col min-h-[400px]">
+        <div className="neo-card p-4 md:p-6 flex flex-col min-h-[300px] md:min-h-[400px]">
           <h3 className="text-lg md:text-xl font-bold mb-1 text-gray-100">PCA 2D Projection</h3>
           <p className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6 font-medium">4D candle vectors reduced to 2D using Principal Component Analysis. Colored by KMeans cluster.</p>
           
           <div className="flex-1 w-full neo-inset p-2 md:p-4 rounded-xl relative">
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: -20 }}>
+              <ScatterChart margin={{ top: 10, right: 5, bottom: 10, left: -25 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                <XAxis type="number" dataKey="x" name="PC1" stroke="var(--text-tertiary)" tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
-                <YAxis type="number" dataKey="y" name="PC2" stroke="var(--text-tertiary)" tick={{fill: 'var(--text-secondary)', fontSize: 12}} />
+                <XAxis type="number" dataKey="x" name="PC1" stroke="var(--text-tertiary)" tick={{fill: 'var(--text-secondary)', fontSize: 10}} />
+                <YAxis type="number" dataKey="y" name="PC2" stroke="var(--text-tertiary)" tick={{fill: 'var(--text-secondary)', fontSize: 10}} />
                 <RechartsTooltip 
                   cursor={{ strokeDasharray: '3 3', stroke: 'var(--text-tertiary)' }}
                   contentStyle={{ backgroundColor: 'var(--color-neo-bg)', borderColor: 'var(--border-color)', borderRadius: '12px', boxShadow: '5px 5px 15px var(--color-neo-shadow1)' }}
@@ -77,7 +77,7 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
           {/* Cluster Legend */}
           <div className="flex flex-wrap gap-2 md:gap-4 mt-4 md:mt-6 justify-center">
             {cluster_summary.map((c, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs md:text-sm font-medium text-gray-400 neo-inset px-3 py-1.5 rounded-full">
+              <div key={i} className="flex items-center gap-1.5 text-[10px] md:text-sm font-medium text-gray-400 neo-inset px-2.5 py-1 md:px-3 md:py-1.5 rounded-full">
                 <div className="w-2.5 h-2.5 rounded-full shadow-inner" style={{ backgroundColor: COLORS[c.cluster_id % COLORS.length] }}></div>
                 <span>Cluster {c.cluster_id}</span>
               </div>
@@ -86,7 +86,7 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
         </div>
 
         {/* Similarity Matrix Heatmap */}
-        <div className="neo-card p-5 md:p-6 flex flex-col w-full overflow-hidden">
+        <div className="neo-card p-4 md:p-6 flex flex-col w-full overflow-hidden">
           <h3 className="text-lg md:text-xl font-bold mb-1 text-gray-100">Cosine Similarity</h3>
           <p className="text-xs md:text-sm text-gray-500 mb-4 md:mb-6 font-medium">
             {analysisMode === 'weekday' 
@@ -94,8 +94,8 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
               : `Vector similarity between different times of the day (Top 15).`}
           </p>
           
-          <div className="flex-1 w-full neo-inset p-4 rounded-xl overflow-x-auto hide-scrollbar">
-            <div className="min-w-[600px] h-full flex items-center">
+          <div className="flex-1 w-full neo-inset p-2 md:p-4 rounded-xl overflow-x-auto hide-scrollbar -mx-0">
+            <div className="min-w-[500px] h-full flex items-center">
               <table className="w-full text-sm text-center border-collapse">
                 <thead>
                   <tr>

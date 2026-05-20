@@ -269,10 +269,10 @@ function App() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto relative p-4 md:p-8 pb-24 md:pb-8 z-10 w-full flex flex-col overflow-x-hidden">
+      <main className="flex-1 overflow-y-auto relative p-4 pt-16 md:p-8 pb-24 md:pb-8 z-10 w-full flex flex-col overflow-x-hidden">
         
         {/* Floating Controls for Mobile View (Theme and Settings) */}
-        <div className="md:hidden absolute top-4 right-4 z-30 flex items-center gap-2">
+        <div className="md:hidden fixed top-4 right-4 z-30 flex items-center gap-2">
           <div className="flex items-center bg-[#151719]/80 backdrop-blur-md p-1 rounded-full neo-inset border border-gray-800/40">
             <button 
               onClick={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')}
@@ -336,7 +336,7 @@ function App() {
       </main>
 
       {/* Mobile Bottom Navigation (Hidden on Desktop) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 neo-card rounded-b-none rounded-t-3xl p-2 z-30 flex justify-around items-center h-20 px-2 pb-safe">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 neo-card rounded-b-none rounded-t-2xl p-1.5 z-30 flex justify-around items-center h-16 px-1 pb-safe border-t border-gray-700/20">
         {navigation.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;

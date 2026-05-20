@@ -75,8 +75,8 @@ const UploadCSV = ({ setData, setLoading, setActiveTab }) => {
       : 100;
 
     return (
-      <div className="h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 w-full px-4 py-8 max-w-4xl mx-auto overflow-y-auto">
-        <div className="text-center mb-6 w-full">
+      <div className="w-full min-h-full flex flex-col items-center justify-start md:justify-center animate-in fade-in zoom-in duration-500 px-4 py-8 max-w-4xl mx-auto">
+        <div className="text-center mb-6 w-full pt-10 sm:pt-0">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10 text-success text-xs font-semibold mb-3 border border-success/20">
             <ShieldCheck size={14} />
             <span>AI Preprocessing & Cleaning Engine Active</span>
@@ -253,10 +253,10 @@ const UploadCSV = ({ setData, setLoading, setActiveTab }) => {
   }
 
   return (
-    <div className="h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 w-full px-4 relative">
+    <div className="w-full min-h-full flex flex-col items-center justify-start md:justify-center animate-in fade-in zoom-in duration-500 px-4 py-12 relative">
       
       {/* Premium App Logo in the top-left corner */}
-      <div className="absolute top-0 left-0 z-20 flex items-center gap-3">
+      <div className="absolute top-2 left-2 sm:top-0 sm:left-0 z-20 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[#1e2024]/80 backdrop-blur-md border border-gray-700/50 p-1 flex items-center justify-center shadow-lg neo-card">
           <img src={logoImg} alt="QuantEdge AI Logo" className="w-full h-full object-contain rounded-lg" />
         </div>
@@ -266,7 +266,7 @@ const UploadCSV = ({ setData, setLoading, setActiveTab }) => {
         </div>
       </div>
 
-      <div className="text-center mb-8 w-full max-w-2xl mx-auto">
+      <div className="text-center mb-8 w-full max-w-2xl mx-auto pt-16 sm:pt-0">
         <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight text-gray-100">Upload Market Data</h2>
         <p className="text-gray-400 max-w-lg mx-auto text-sm md:text-base font-medium">
           Select your dataset timeframe and upload OHLC CSV data. The system will perform advanced Linear Algebra transformations and Data Mining to extract hidden patterns.
