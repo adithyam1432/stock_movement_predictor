@@ -258,11 +258,10 @@ const UploadCSV = ({ setData, setLoading, setActiveTab }) => {
       {/* Premium App Logo in the top-left corner */}
       <div className="absolute top-2 left-2 sm:top-0 sm:left-0 z-20 flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[#1e2024]/80 backdrop-blur-md border border-gray-700/50 p-1 flex items-center justify-center shadow-lg neo-card">
-          <img src={logoImg} alt="QuantEdge AI Logo" className="w-full h-full object-contain rounded-lg" />
+          <img src={logoImg} alt="CandleMiner Logo" className="w-full h-full object-contain rounded-lg" />
         </div>
         <div className="hidden sm:flex flex-col text-left">
-          <span className="text-xs font-bold text-gray-200 tracking-wider">QuantEdge AI</span>
-          <span className="text-[9px] font-semibold text-primary uppercase tracking-widest leading-none mt-0.5">DATA MINING</span>
+          <span className="text-xs font-bold text-gray-200 tracking-wider">CandleMiner</span>
         </div>
       </div>
 

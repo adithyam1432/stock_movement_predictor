@@ -6,10 +6,17 @@ from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
 
 def create_vectors(df: pd.DataFrame) -> np.ndarray:
     """
-    Transforms the DataFrame into a matrix of feature vectors.
-    Vector format: [Open, Close, BodySize, Direction]
+    Transforms the DataFrame into a matrix of feature vectors for ML models.
+    Vector format incorporates advanced technicals if available.
     """
-    features = df[['Open', 'Close', 'Body_Size', 'Direction']].values
+    # Use advanced technical indicators if they exist (added by data_pipeline)
+    available_features = ['Open', 'Close', 'Body_Size', 'Direction']
+    
+    for tech_feature in ['RSI', 'MACD_Hist', 'BB_Width']:
+        if tech_feature in df.columns:
+            available_features.append(tech_feature)
+            
+    features = df[available_features].values
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(features)
     return scaled_features
@@ -20,7 +27,12 @@ def compute_similarity_matrix(df: pd.DataFrame, metric='cosine'):
     Then computes the similarity matrix between these timeframes.
     """
     # Calculate mean features per timeframe
-    timeframe_means = df.groupby('Time')[['Open', 'Close', 'Body_Size', 'Direction']].mean()
+    available_features = ['Open', 'Close', 'Body_Size', 'Direction']
+    for tech_feature in ['RSI', 'MACD_Hist', 'BB_Width']:
+        if tech_feature in df.columns:
+            available_features.append(tech_feature)
+            
+    timeframe_means = df.groupby('Time')[available_features].mean()
     timeframes = timeframe_means.index.tolist()
     
     scaler = StandardScaler()
@@ -45,13 +57,29 @@ def compute_similarity_matrix(df: pd.DataFrame, metric='cosine'):
 
 def apply_pca(df: pd.DataFrame, n_components=2):
     """
-    Applies PCA to reduce the 4D candle vectors down to 2D for visualization.
+    Applies PCA to reduce the vectors down to 2D for visualization.
+    Gracefully handles small datasets by returning dummy points if needed.
     """
     vectors = create_vectors(df)
-    pca = PCA(n_components=n_components)
+    n_samples, n_features = vectors.shape
+    
+    actual_components = min(n_components, n_samples, n_features)
+    
+    if actual_components == 0:
+        return [[0.0] * n_components for _ in range(n_samples)]
+        
+    pca = PCA(n_components=actual_components)
     principal_components = pca.fit_transform(vectors)
     
-    return principal_components.tolist()
+    # Pad with 0s if we had to reduce components
+    padded_components = []
+    for row in principal_components:
+        padded_row = list(row)
+        while len(padded_row) < n_components:
+            padded_row.append(0.0)
+        padded_components.append(padded_row)
+        
+    return padded_components
 
 def compute_weekday_similarity_matrix(df: pd.DataFrame, metric='cosine'):
     """
@@ -67,7 +95,12 @@ def compute_weekday_similarity_matrix(df: pd.DataFrame, metric='cosine'):
         if len(weekday_df) == 0:
             continue
             
-        timeframe_means = weekday_df.groupby('Time')[['Open', 'Close', 'Body_Size', 'Direction']].mean()
+        available_features = ['Open', 'Close', 'Body_Size', 'Direction']
+        for tech_feature in ['RSI', 'MACD_Hist', 'BB_Width']:
+            if tech_feature in weekday_df.columns:
+                available_features.append(tech_feature)
+                
+        timeframe_means = weekday_df.groupby('Time')[available_features].mean()
         timeframes = timeframe_means.index.tolist()
         
         if len(timeframes) < 2:

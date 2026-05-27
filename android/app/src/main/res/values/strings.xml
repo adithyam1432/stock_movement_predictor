@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">QuantEdge AI</string>
-    <string name="title_activity_main">QuantEdge AI</string>
+    <string name="app_name">CandleMiner</string>
+    <string name="title_activity_main">CandleMiner</string>
     <string name="package_name">com.quantedge.marketapp</string>
     <string name="custom_url_scheme">com.quantedge.marketapp</string>
 </resources>

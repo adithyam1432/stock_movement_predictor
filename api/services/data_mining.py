@@ -6,6 +6,9 @@ def cluster_candles(df: pd.DataFrame, n_clusters=5):
     """
     Uses KMeans to cluster all candles into n_clusters based on their vector representation.
     """
+    if len(df) < n_clusters:
+        n_clusters = max(1, len(df))
+        
     vectors = create_vectors(df)
     
     kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
@@ -64,6 +67,10 @@ def analyze_timeframes(df: pd.DataFrame):
         bearish = len(group[group['Candle_Type'] == 'Bearish'])
         neutral = len(group[group['Candle_Type'] == 'Neutral'])
         
+        vol_std = group['Body_Size'].std() if total > 1 else 0.0
+        if pd.isna(vol_std):
+            vol_std = 0.0
+        
         timeframe_stats.append({
             "time": time,
             "total": total,
@@ -71,7 +78,8 @@ def analyze_timeframes(df: pd.DataFrame):
             "bearish": bearish,
             "neutral": neutral,
             "bullish_ratio": round(bullish / total, 2) if total > 0 else 0,
-            "bearish_ratio": round(bearish / total, 2) if total > 0 else 0
+            "bearish_ratio": round(bearish / total, 2) if total > 0 else 0,
+            "volatility_std": round(vol_std, 4)
         })
         
     return timeframe_stats
@@ -96,6 +104,10 @@ def analyze_weekday_dominance(df: pd.DataFrame):
         bearish = len(group[group['Candle_Type'] == 'Bearish'])
         neutral = len(group[group['Candle_Type'] == 'Neutral'])
         
+        vol_std = group['Body_Size'].std() if total > 1 else 0.0
+        if pd.isna(vol_std):
+            vol_std = 0.0
+        
         weekday_stats[weekday].append({
             "time": time,
             "total": total,
@@ -103,7 +115,8 @@ def analyze_weekday_dominance(df: pd.DataFrame):
             "bearish": bearish,
             "neutral": neutral,
             "bullish_ratio": round(bullish / total, 2) if total > 0 else 0,
-            "bearish_ratio": round(bearish / total, 2) if total > 0 else 0
+            "bearish_ratio": round(bearish / total, 2) if total > 0 else 0,
+            "volatility_std": round(vol_std, 4)
         })
         
     for weekday in weekday_stats:

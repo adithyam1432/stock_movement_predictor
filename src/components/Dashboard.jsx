@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, TrendingDown, Minus, Activity, Zap } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Activity, Zap, AlertTriangle } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
@@ -98,17 +98,61 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
             <h3 className="text-xl font-bold text-gray-100">AI Insight Engine</h3>
           </div>
           
-          <div className="space-y-4 flex-1">
-            {insights.map((insight, idx) => (
-              <div 
-                key={idx} 
-                className="neo-inset rounded-xl p-5 flex gap-4 animate-in slide-in-from-right-8 duration-700 fade-in border-l-2 border-primary/50" 
-                style={{ animationDelay: `${idx * 150}ms`, animationFillMode: 'both' }}
-              >
-                <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
-                <p className="text-gray-300 leading-relaxed text-sm md:text-base font-medium">{insight}</p>
+          <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+            {Array.isArray(insights) ? (
+              // Legacy Array Fallback
+              insights.map((insight, idx) => (
+                <div key={idx} className="neo-inset rounded-xl p-5 flex gap-4 border-l-2 border-primary/50">
+                  <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                  <p className="text-gray-300 leading-relaxed text-sm md:text-base font-medium">{insight}</p>
+                </div>
+              ))
+            ) : (
+              // New Structured JSON Format
+              <div className="space-y-6">
+                {insights.market_trend && insights.market_trend.length > 0 && (
+                  <div className="animate-in slide-in-from-right-8 duration-700 fade-in">
+                    <h4 className="text-secondary font-bold mb-3 flex items-center gap-2"><TrendingUp size={16} /> Market Trend</h4>
+                    <div className="space-y-3">
+                      {insights.market_trend.map((insight, idx) => (
+                        <div key={`trend-${idx}`} className="neo-inset rounded-xl p-4 flex gap-4 border-l-2 border-secondary/50">
+                          <div className="h-2 w-2 rounded-full bg-secondary mt-1.5 flex-shrink-0"></div>
+                          <p className="text-gray-300 text-sm font-medium">{insight}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {insights.actionable_patterns && insights.actionable_patterns.length > 0 && (
+                  <div className="animate-in slide-in-from-right-8 duration-700 fade-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
+                    <h4 className="text-primary font-bold mb-3 flex items-center gap-2"><Activity size={16} /> Actionable Patterns</h4>
+                    <div className="space-y-3">
+                      {insights.actionable_patterns.map((insight, idx) => (
+                        <div key={`action-${idx}`} className="neo-inset rounded-xl p-4 flex gap-4 border-l-2 border-primary/50">
+                          <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
+                          <p className="text-gray-300 text-sm font-medium">{insight}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {insights.volatility_alerts && insights.volatility_alerts.length > 0 && (
+                  <div className="animate-in slide-in-from-right-8 duration-700 fade-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+                    <h4 className="text-danger font-bold mb-3 flex items-center gap-2"><AlertTriangle size={16} /> Volatility Alerts</h4>
+                    <div className="space-y-3">
+                      {insights.volatility_alerts.map((insight, idx) => (
+                        <div key={`vol-${idx}`} className="neo-inset rounded-xl p-4 flex gap-4 border-l-2 border-danger/50">
+                          <div className="h-2 w-2 rounded-full bg-danger mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
+                          <p className="text-gray-300 text-sm font-medium">{insight}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -145,6 +189,40 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
           </div>
         </div>
       </div>
+      
+      {/* Forecasting Panel */}
+      {data.forecasts && data.forecasts.length > 0 && (
+        <div className="neo-card p-4 md:p-6 w-full animate-in slide-in-from-bottom-8 duration-700 fade-in mt-6">
+           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+             <div className="flex items-center gap-3">
+               <div className="neo-inset p-2 rounded-full text-indigo-400">
+                 <TrendingUp size={20} />
+               </div>
+               <h3 className="text-xl font-bold text-gray-100">Linear Regression Projection</h3>
+             </div>
+             <span className="text-xs bg-indigo-500/20 text-indigo-300 px-3 py-1 mt-3 md:mt-0 rounded-full border border-indigo-500/30">
+               Next 10 Intervals Forecast
+             </span>
+           </div>
+           
+           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+             {data.forecasts.map((f, i) => {
+               // Determine color based on Open vs Close
+               const isBullish = f.Close > f.Open;
+               const colorClass = isBullish ? 'text-success' : 'text-danger';
+               const borderClass = isBullish ? 'border-success/30 bg-success/5' : 'border-danger/30 bg-danger/5';
+               
+               return (
+                 <div key={i} className={`neo-inset rounded-lg p-3 border ${borderClass} flex flex-col justify-center items-center text-center transition-all hover:scale-105`}>
+                   <div className="text-[10px] text-gray-400 font-medium mb-1">{f.Date.split('-').slice(1).join('/')} {f.Time}</div>
+                   <div className={`text-sm md:text-base font-bold ${colorClass}`}>₹{f.Close.toFixed(2)}</div>
+                   <div className="text-[9px] text-gray-500 mt-1 uppercase tracking-wider">{isBullish ? 'BULLISH' : 'BEARISH'}</div>
+                 </div>
+               );
+             })}
+           </div>
+        </div>
+      )}
     </div>
   );
 };

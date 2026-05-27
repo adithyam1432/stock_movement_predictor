@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, LayoutDashboard, BarChart2, GitCommit, Search, Activity, Sun, Moon, Menu, X, CheckCircle, AlertTriangle, AlertCircle, Trash2, HelpCircle, Sparkles, Settings, Globe, Wifi, Check } from 'lucide-react';
-import UploadCSV from './components/UploadCSV';
+import GetDataDashboard from './components/GetDataDashboard';
 import Dashboard from './components/Dashboard';
 import Analytics from './components/Analytics';
 import Similarity from './components/Similarity';
@@ -8,11 +8,22 @@ import Patterns from './components/Patterns';
 import { isNativePlatform, getApiBaseUrl, setApiBaseUrl } from './utils/apiConfig';
 
 function App() {
-  const [data, setData] = useState(null);
-  const [activeTab, setActiveTab] = useState('upload');
+  const [data, setData] = useState(() => {
+    // Session Caching for fetched data
+    const saved = sessionStorage.getItem('candleminer_data');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [activeTab, setActiveTab] = useState('get_data');
   const [loading, setLoading] = useState(false);
   const [analysisMode, setAnalysisMode] = useState('global');
   const [selectedWeekday, setSelectedWeekday] = useState('Monday');
+
+  // Cache data whenever it changes
+  useEffect(() => {
+    if (data) {
+      sessionStorage.setItem('candleminer_data', JSON.stringify(data));
+    }
+  }, [data]);
 
   // API host configuration states
   const [showApiSettingsModal, setShowApiSettingsModal] = useState(false);
@@ -53,7 +64,7 @@ function App() {
   });
 
   const navigation = [
-    { id: 'upload', name: 'Upload', icon: Upload },
+    { id: 'get_data', name: 'Get Data', icon: Activity },
     { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
     { id: 'analytics', name: 'Analytics', icon: BarChart2 },
     { id: 'similarity', name: 'Similarity', icon: GitCommit },
@@ -97,26 +108,26 @@ function App() {
   };
 
   const renderContent = () => {
-    if (!data && activeTab !== 'upload') {
+    if (!data && activeTab !== 'get_data') {
       return (
         <div className="flex flex-col items-center justify-center h-full space-y-6 text-gray-400 p-6 text-center min-h-[400px]">
           <div className="p-8 neo-inset rounded-full">
             <Activity size={48} className="text-primary/70" />
           </div>
-          <p className="text-lg font-medium">Please upload a CSV dataset to view this section.</p>
+          <p className="text-lg font-medium">Please fetch market data to view this section.</p>
           <button 
-            onClick={() => setActiveTab('upload')}
+            onClick={() => setActiveTab('get_data')}
             className="neo-button px-6 py-3 font-semibold text-gray-200 hover:text-primary transition-colors"
           >
-            Go to Upload
+            Get Market Data
           </button>
         </div>
       );
     }
 
     switch (activeTab) {
-      case 'upload':
-        return <UploadCSV setData={setData} setLoading={setLoading} setActiveTab={setActiveTab} />;
+      case 'get_data':
+        return <GetDataDashboard onDataReceived={(fetchedData) => { setData(fetchedData); setActiveTab('dashboard'); }} />;
       case 'dashboard':
         return <Dashboard data={data} analysisMode={analysisMode} selectedWeekday={selectedWeekday} />;
       case 'analytics':
@@ -171,7 +182,7 @@ function App() {
           <div className="text-center relative z-10">
             <h1 className="text-3xl font-extrabold text-gray-100 tracking-wider flex items-center justify-center gap-2 mb-2">
               <Activity className="text-primary animate-pulse" />
-              QuantEdge AI
+              CandleMiner
             </h1>
             <p className="text-sm font-semibold tracking-widest text-primary/80 uppercase animate-pulse">
               Synthesizing Candlestick Intelligence
@@ -190,7 +201,7 @@ function App() {
         <div className="p-4 mb-8 text-center border-b border-gray-700/30">
           <h1 className="text-xl font-bold text-gray-100 flex items-center justify-center gap-2">
             <Activity className="text-primary" />
-            QuantEdge AI
+            CandleMiner
           </h1>
           <p className="text-xs text-gray-500 mt-2 font-medium tracking-wide">LINEAR ALGEBRA MINING</p>
         </div>
@@ -199,7 +210,7 @@ function App() {
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
-            const disabled = !data && item.id !== 'upload';
+            const disabled = !data && item.id !== 'get_data';
             
             return (
               <button
@@ -340,7 +351,7 @@ function App() {
         {navigation.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          const disabled = !data && item.id !== 'upload';
+          const disabled = !data && item.id !== 'get_data';
           
           return (
             <button
