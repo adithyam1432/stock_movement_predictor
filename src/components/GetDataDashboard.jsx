@@ -72,7 +72,7 @@ const GetDataDashboard = ({ onDataReceived }) => {
     setError('');
     
     try {
-      const response = await fetch('http://localhost:8000/api/fetch_market', {
+      const response = await fetch('/api/fetch_market', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
