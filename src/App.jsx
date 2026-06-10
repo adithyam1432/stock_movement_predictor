@@ -28,7 +28,11 @@ function App() {
   // Cache data whenever it changes
   useEffect(() => {
     if (data) {
-      sessionStorage.setItem('candleminer_data', JSON.stringify(data));
+      try {
+        sessionStorage.setItem('candleminer_data', JSON.stringify(data));
+      } catch (e) {
+        console.warn("Session storage quota exceeded. Data caching skipped:", e);
+      }
     }
   }, [data]);
 
