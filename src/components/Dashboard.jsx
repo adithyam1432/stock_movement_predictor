@@ -7,17 +7,21 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
 
   const { summary, insights, weekday_stats, timeframe } = data;
   
-  let currentTotal = summary.total_candles;
-  let currentBullish = summary.bullish_count;
-  let currentBearish = summary.bearish_count;
-  let currentNeutral = summary.neutral_count;
+  // Safe defaults to handle stale session/cache or incomplete data
+  const safeSummary = summary || { total_candles: 0, bullish_count: 0, bearish_count: 0, neutral_count: 0 };
+  const safeInsights = insights || { market_trend: [], actionable_patterns: [], volatility_alerts: [] };
+  
+  let currentTotal = safeSummary.total_candles || 0;
+  let currentBullish = safeSummary.bullish_count || 0;
+  let currentBearish = safeSummary.bearish_count || 0;
+  let currentNeutral = safeSummary.neutral_count || 0;
   
   if (analysisMode === 'weekday' && weekday_stats && weekday_stats[selectedWeekday]) {
     const stats = weekday_stats[selectedWeekday];
-    currentTotal = stats.reduce((acc, curr) => acc + curr.total, 0);
-    currentBullish = stats.reduce((acc, curr) => acc + curr.bullish, 0);
-    currentBearish = stats.reduce((acc, curr) => acc + curr.bearish, 0);
-    currentNeutral = stats.reduce((acc, curr) => acc + curr.neutral, 0);
+    currentTotal = stats.reduce((acc, curr) => acc + (curr.total || 0), 0);
+    currentBullish = stats.reduce((acc, curr) => acc + (curr.bullish || 0), 0);
+    currentBearish = stats.reduce((acc, curr) => acc + (curr.bearish || 0), 0);
+    currentNeutral = stats.reduce((acc, curr) => acc + (curr.neutral || 0), 0);
   }
 
   const pieData = [
@@ -42,6 +46,8 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
   );
 
   const renderInsightItem = (insight, type, idx) => {
+    if (!insight || typeof insight !== 'string') return null;
+    
     let borderClass = 'border-primary/50';
     let dotClass = 'bg-primary shadow-[0_0_8px_rgba(59,130,246,0.8)]';
     
@@ -141,35 +147,35 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
           </div>
           
           <div className="space-y-4 flex-1 overflow-y-auto pr-2">
-            {Array.isArray(insights) ? (
+            {Array.isArray(safeInsights) ? (
               // Legacy Array Fallback
-              insights.map((insight, idx) => renderInsightItem(insight, 'action', idx))
+              safeInsights.map((insight, idx) => renderInsightItem(insight, 'action', idx))
             ) : (
               // New Structured JSON Format
               <div className="space-y-6">
-                {insights.market_trend && insights.market_trend.length > 0 && (
+                {safeInsights.market_trend && safeInsights.market_trend.length > 0 && (
                   <div className="animate-in slide-in-from-right-8 duration-700 fade-in">
                     <h4 className="text-secondary font-bold mb-3 flex items-center gap-2"><TrendingUp size={16} /> Market Trend</h4>
                     <div className="space-y-3">
-                      {insights.market_trend.map((insight, idx) => renderInsightItem(insight, 'trend', idx))}
+                      {safeInsights.market_trend.map((insight, idx) => renderInsightItem(insight, 'trend', idx))}
                     </div>
                   </div>
                 )}
                 
-                {insights.actionable_patterns && insights.actionable_patterns.length > 0 && (
+                {safeInsights.actionable_patterns && safeInsights.actionable_patterns.length > 0 && (
                   <div className="animate-in slide-in-from-right-8 duration-700 fade-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
                     <h4 className="text-primary font-bold mb-3 flex items-center gap-2"><Activity size={16} /> Actionable Patterns</h4>
                     <div className="space-y-3">
-                      {insights.actionable_patterns.map((insight, idx) => renderInsightItem(insight, 'action', idx))}
+                      {safeInsights.actionable_patterns.map((insight, idx) => renderInsightItem(insight, 'action', idx))}
                     </div>
                   </div>
                 )}
 
-                {insights.volatility_alerts && insights.volatility_alerts.length > 0 && (
+                {safeInsights.volatility_alerts && safeInsights.volatility_alerts.length > 0 && (
                   <div className="animate-in slide-in-from-right-8 duration-700 fade-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
                     <h4 className="text-danger font-bold mb-3 flex items-center gap-2"><AlertTriangle size={16} /> Volatility Alerts</h4>
                     <div className="space-y-3">
-                      {insights.volatility_alerts.map((insight, idx) => renderInsightItem(insight, 'vol', idx))}
+                      {safeInsights.volatility_alerts.map((insight, idx) => renderInsightItem(insight, 'vol', idx))}
                     </div>
                   </div>
                 )}
@@ -253,7 +259,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-semibold text-gray-400">Consistency Score</span>
                   <span className="text-2xl font-bold text-primary">
-                    {data.weekday_consistency[selectedWeekday].consistency_score}%
+                    {data.weekday_consistency[selectedWeekday].consistency_score || 0}%
                   </span>
                 </div>
                 {/* Visual Progress Bar */}
@@ -266,7 +272,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                           ? 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.6)]'
                           : 'bg-gray-500'
                     }`} 
-                    style={{ width: `${data.weekday_consistency[selectedWeekday].consistency_score}%` }}
+                    style={{ width: `${data.weekday_consistency[selectedWeekday].consistency_score || 0}%` }}
                   />
                 </div>
                 
@@ -274,26 +280,26 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                   <div className="neo-inset p-3 rounded-xl text-center">
                     <div className="text-[10px] text-gray-500 font-semibold mb-1 uppercase tracking-wider">Bullish Weeks</div>
                     <div className="text-lg font-bold text-success">
-                      {data.weekday_consistency[selectedWeekday].bullish_weeks}
+                      {data.weekday_consistency[selectedWeekday].bullish_weeks || 0}
                     </div>
                     <div className="text-[9px] text-gray-400">
-                      ({Math.round(data.weekday_consistency[selectedWeekday].bullish_weeks_ratio * 100)}% of total)
+                      ({Math.round((data.weekday_consistency[selectedWeekday].bullish_weeks_ratio || 0) * 100)}% of total)
                     </div>
                   </div>
                   <div className="neo-inset p-3 rounded-xl text-center">
                     <div className="text-[10px] text-gray-500 font-semibold mb-1 uppercase tracking-wider">Bearish Weeks</div>
                     <div className="text-lg font-bold text-danger">
-                      {data.weekday_consistency[selectedWeekday].bearish_weeks}
+                      {data.weekday_consistency[selectedWeekday].bearish_weeks || 0}
                     </div>
                     <div className="text-[9px] text-gray-400">
-                      ({Math.round(data.weekday_consistency[selectedWeekday].bearish_weeks_ratio * 100)}% of total)
+                      ({Math.round((data.weekday_consistency[selectedWeekday].bearish_weeks_ratio || 0) * 100)}% of total)
                     </div>
                   </div>
                 </div>
 
                 <div className="border-t border-gray-700/30 pt-4 flex justify-between text-xs text-gray-400 font-medium">
-                  <div>Avg Weekly Return: <span className={data.weekday_consistency[selectedWeekday].avg_return >= 0 ? "text-success font-bold" : "text-danger font-bold"}>{data.weekday_consistency[selectedWeekday].avg_return.toFixed(3)}%</span></div>
-                  <div>Volatility (Std Dev): <span className="text-gray-200 font-bold">{data.weekday_consistency[selectedWeekday].std_return.toFixed(3)}%</span></div>
+                  <div>Avg Weekly Return: <span className={(data.weekday_consistency[selectedWeekday].avg_return || 0) >= 0 ? "text-success font-bold" : "text-danger font-bold"}>{(data.weekday_consistency[selectedWeekday].avg_return || 0).toFixed(3)}%</span></div>
+                  <div>Volatility (Std Dev): <span className="text-gray-200 font-bold">{(data.weekday_consistency[selectedWeekday].std_return || 0).toFixed(3)}%</span></div>
                 </div>
               </div>
 
@@ -362,6 +368,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
            
            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
              {data.forecasts.map((f, i) => {
+               if (!f) return null;
                // Determine color based on Open vs Close
                const isBullish = f.Close > f.Open;
                const colorClass = isBullish ? 'text-success' : 'text-danger';
@@ -369,8 +376,12 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                
                return (
                  <div key={i} className={`neo-inset rounded-lg p-3 border ${borderClass} flex flex-col justify-center items-center text-center transition-all hover:scale-105`}>
-                   <div className="text-[10px] text-gray-400 font-medium mb-1">{f.Date.split('-').slice(1).join('/')} {f.Time}</div>
-                   <div className={`text-sm md:text-base font-bold ${colorClass}`}>₹{f.Close.toFixed(2)}</div>
+                   <div className="text-[10px] text-gray-400 font-medium mb-1">
+                     {f.Date ? f.Date.split('-').slice(1).join('/') : ''} {f.Time || ''}
+                   </div>
+                   <div className={`text-sm md:text-base font-bold ${colorClass}`}>
+                     ₹{typeof f.Close === 'number' ? f.Close.toFixed(2) : (f.Close || 0)}
+                   </div>
                    <div className="text-[9px] text-gray-500 mt-1 uppercase tracking-wider">{isBullish ? 'BULLISH' : 'BEARISH'}</div>
                  </div>
                );
