@@ -41,6 +41,48 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
     </div>
   );
 
+  const renderInsightItem = (insight, type, idx) => {
+    let borderClass = 'border-primary/50';
+    let dotClass = 'bg-primary shadow-[0_0_8px_rgba(59,130,246,0.8)]';
+    
+    if (type === 'trend') {
+      borderClass = 'border-secondary/50';
+      dotClass = 'bg-secondary';
+    } else if (type === 'vol') {
+      borderClass = 'border-danger/50';
+      dotClass = 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.8)]';
+    }
+
+    let text = insight;
+    
+    // Check for emoji prefixes and map to theme classes
+    if (insight.startsWith('🟢')) {
+      borderClass = 'border-success/50';
+      dotClass = 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.8)]';
+      text = insight.replace(/^🟢\s*/, '');
+    } else if (insight.startsWith('🔴')) {
+      borderClass = 'border-danger/50';
+      dotClass = 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.8)]';
+      text = insight.replace(/^🔴\s*/, '');
+    } else if (insight.startsWith('⚡') || insight.startsWith('⚠️')) {
+      borderClass = 'border-warning/50';
+      dotClass = 'bg-warning shadow-[0_0_8px_rgba(245,158,11,0.8)]';
+      text = insight.replace(/^[⚡⚠️]\s*/, '');
+    } else if (insight.startsWith('📊')) {
+      borderClass = 'border-secondary/50';
+      dotClass = 'bg-secondary';
+      text = insight.replace(/^📊\s*/, '');
+    }
+
+    return (
+      <div key={`${type}-${idx}`} className={`neo-inset rounded-xl p-4 flex gap-4 border-l-2 ${borderClass}`}>
+        <div className={`h-2 w-2 rounded-full mt-1.5 flex-shrink-0 ${dotClass}`}></div>
+        <p className="text-gray-300 text-sm font-medium">{text}</p>
+      </div>
+    );
+  };
+
+
   return (
     <div className="w-full flex flex-col space-y-5 lg:space-y-8 max-w-7xl mx-auto pb-10">
       <div className="flex items-center justify-between px-2">
@@ -101,12 +143,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
           <div className="space-y-4 flex-1 overflow-y-auto pr-2">
             {Array.isArray(insights) ? (
               // Legacy Array Fallback
-              insights.map((insight, idx) => (
-                <div key={idx} className="neo-inset rounded-xl p-5 flex gap-4 border-l-2 border-primary/50">
-                  <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
-                  <p className="text-gray-300 leading-relaxed text-sm md:text-base font-medium">{insight}</p>
-                </div>
-              ))
+              insights.map((insight, idx) => renderInsightItem(insight, 'action', idx))
             ) : (
               // New Structured JSON Format
               <div className="space-y-6">
@@ -114,12 +151,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                   <div className="animate-in slide-in-from-right-8 duration-700 fade-in">
                     <h4 className="text-secondary font-bold mb-3 flex items-center gap-2"><TrendingUp size={16} /> Market Trend</h4>
                     <div className="space-y-3">
-                      {insights.market_trend.map((insight, idx) => (
-                        <div key={`trend-${idx}`} className="neo-inset rounded-xl p-4 flex gap-4 border-l-2 border-secondary/50">
-                          <div className="h-2 w-2 rounded-full bg-secondary mt-1.5 flex-shrink-0"></div>
-                          <p className="text-gray-300 text-sm font-medium">{insight}</p>
-                        </div>
-                      ))}
+                      {insights.market_trend.map((insight, idx) => renderInsightItem(insight, 'trend', idx))}
                     </div>
                   </div>
                 )}
@@ -128,12 +160,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                   <div className="animate-in slide-in-from-right-8 duration-700 fade-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
                     <h4 className="text-primary font-bold mb-3 flex items-center gap-2"><Activity size={16} /> Actionable Patterns</h4>
                     <div className="space-y-3">
-                      {insights.actionable_patterns.map((insight, idx) => (
-                        <div key={`action-${idx}`} className="neo-inset rounded-xl p-4 flex gap-4 border-l-2 border-primary/50">
-                          <div className="h-2 w-2 rounded-full bg-primary mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></div>
-                          <p className="text-gray-300 text-sm font-medium">{insight}</p>
-                        </div>
-                      ))}
+                      {insights.actionable_patterns.map((insight, idx) => renderInsightItem(insight, 'action', idx))}
                     </div>
                   </div>
                 )}
@@ -142,12 +169,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                   <div className="animate-in slide-in-from-right-8 duration-700 fade-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
                     <h4 className="text-danger font-bold mb-3 flex items-center gap-2"><AlertTriangle size={16} /> Volatility Alerts</h4>
                     <div className="space-y-3">
-                      {insights.volatility_alerts.map((insight, idx) => (
-                        <div key={`vol-${idx}`} className="neo-inset rounded-xl p-4 flex gap-4 border-l-2 border-danger/50">
-                          <div className="h-2 w-2 rounded-full bg-danger mt-1.5 flex-shrink-0 shadow-[0_0_8px_rgba(239,68,68,0.8)]"></div>
-                          <p className="text-gray-300 text-sm font-medium">{insight}</p>
-                        </div>
-                      ))}
+                      {insights.volatility_alerts.map((insight, idx) => renderInsightItem(insight, 'vol', idx))}
                     </div>
                   </div>
                 )}
