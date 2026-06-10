@@ -11,8 +11,14 @@ import ErrorBoundary from './components/ErrorBoundary';
 function App() {
   const [data, setData] = useState(() => {
     // Session Caching for fetched data
-    const saved = sessionStorage.getItem('candleminer_data');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = sessionStorage.getItem('candleminer_data');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error("Failed to parse cached candleminer_data:", e);
+      sessionStorage.removeItem('candleminer_data');
+      return null;
+    }
   });
   const [activeTab, setActiveTab] = useState('get_data');
   const [loading, setLoading] = useState(false);
