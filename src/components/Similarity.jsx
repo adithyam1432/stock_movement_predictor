@@ -2,9 +2,10 @@ import React, { useMemo } from 'react';
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const Similarity = ({ data, analysisMode, selectedWeekday }) => {
-  if (!data) return null;
-
-  const { similarity_matrix, pca_data, cluster_summary, weekday_matrices } = data;
+  const similarity_matrix = data?.similarity_matrix;
+  const pca_data = data?.pca_data;
+  const cluster_summary = data?.cluster_summary;
+  const weekday_matrices = data?.weekday_matrices;
 
   const currentMatrix = useMemo(() => {
     if (analysisMode === 'weekday' && weekday_matrices && weekday_matrices[selectedWeekday]) {
@@ -12,6 +13,16 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
     }
     return similarity_matrix;
   }, [analysisMode, selectedWeekday, similarity_matrix, weekday_matrices]);
+
+  const filteredPcaData = useMemo(() => {
+    if (!pca_data) return [];
+    if (analysisMode === 'weekday') {
+      return pca_data.filter(item => item.weekday === selectedWeekday);
+    }
+    return pca_data;
+  }, [pca_data, analysisMode, selectedWeekday]);
+
+  if (!data) return null;
 
   const displayMatrix = currentMatrix ? currentMatrix.slice(0, 15) : [];
   const columns = Object.keys(displayMatrix[0] || {}).filter(k => k !== 'id').slice(0, 15);
@@ -26,14 +37,6 @@ const Similarity = ({ data, analysisMode, selectedWeekday }) => {
   };
 
   const COLORS = ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6'];
-
-  const filteredPcaData = useMemo(() => {
-    if (!pca_data) return [];
-    if (analysisMode === 'weekday') {
-      return pca_data.filter(item => item.weekday === selectedWeekday);
-    }
-    return pca_data;
-  }, [pca_data, analysisMode, selectedWeekday]);
 
   return (
     <div className="w-full flex flex-col space-y-5 lg:space-y-8 max-w-7xl mx-auto pb-10">

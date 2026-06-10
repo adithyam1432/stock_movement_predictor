@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const Analytics = ({ data, analysisMode, selectedWeekday }) => {
-  if (!data) return null;
-
-  const { timeframe_stats, weekday_stats, timeframe } = data;
+  const timeframe_stats = data?.timeframe_stats;
+  const weekday_stats = data?.weekday_stats;
+  const timeframe = data?.timeframe;
 
   const currentStats = useMemo(() => {
     if (analysisMode === 'weekday' && weekday_stats && weekday_stats[selectedWeekday]) {
@@ -38,6 +38,8 @@ const Analytics = ({ data, analysisMode, selectedWeekday }) => {
     
     return processed;
   }, [currentStats]);
+
+  if (!data) return null;
 
   const strongestBullish = currentStats?.length ? [...currentStats].sort((a, b) => b.bullish_ratio - a.bullish_ratio)[0] : null;
   const strongestBearish = currentStats?.length ? [...currentStats].sort((a, b) => b.bearish_ratio - a.bearish_ratio)[0] : null;

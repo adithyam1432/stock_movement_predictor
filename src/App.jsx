@@ -6,6 +6,7 @@ import Analytics from './components/Analytics';
 import Similarity from './components/Similarity';
 import Patterns from './components/Patterns';
 import { isNativePlatform, getApiBaseUrl, setApiBaseUrl } from './utils/apiConfig';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const [data, setData] = useState(() => {
@@ -342,7 +343,9 @@ function App() {
           </div>
         )}
         <div className="flex-1 h-full min-h-0">
-          {renderContent()}
+          <ErrorBoundary>
+            {renderContent()}
+          </ErrorBoundary>
         </div>
       </main>
 

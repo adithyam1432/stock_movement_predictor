@@ -2,20 +2,20 @@ import React, { useMemo } from 'react';
 import { Target, Maximize2, Minimize2 } from 'lucide-react';
 
 const Patterns = ({ data, analysisMode, selectedWeekday }) => {
-  if (!data) return null;
-
-  const { pca_data, cluster_summary } = data;
+  const pca_data = data?.pca_data;
+  const cluster_summary = data?.cluster_summary;
 
   const displayClusters = useMemo(() => {
+    if (!pca_data && !cluster_summary) return [];
     if (!pca_data) return cluster_summary || [];
 
     // Group pca_data by cluster
     const clusterGroups = {};
     
     // Filter pca_data if we are in weekday mode
-    const activeCandles = analysisMode === 'weekday'
+    const activeCandles = analysisMode === 'weekday' && pca_data
       ? pca_data.filter(item => item.weekday === selectedWeekday)
-      : pca_data;
+      : pca_data || [];
       
     // Initialize groups for 5 clusters
     for (let i = 0; i < 5; i++) {
@@ -77,6 +77,8 @@ const Patterns = ({ data, analysisMode, selectedWeekday }) => {
     // Sort by size descending
     return summaries.sort((a, b) => b.size - a.size);
   }, [pca_data, cluster_summary, analysisMode, selectedWeekday]);
+
+  if (!data) return null;
 
   const getPatternIcon = (patternType) => {
     if (patternType.includes('Bullish')) return <Maximize2 className="text-success" size={20} />;

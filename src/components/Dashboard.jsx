@@ -190,30 +190,34 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
             {analysisMode === 'weekday' ? `${selectedWeekday} Distribution` : 'Global Distribution'}
           </h3>
           <div className="flex-1 w-full neo-inset rounded-xl p-2 md:p-4 relative flex items-center justify-center min-h-[220px] md:min-h-[280px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={75}
-                  paddingAngle={6}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip 
-                  contentStyle={{ backgroundColor: 'var(--color-neo-bg)', borderColor: 'var(--border-color)', borderRadius: '12px', boxShadow: '5px 5px 15px var(--color-neo-shadow1)', color: 'var(--text-primary)' }}
-                  itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
-                  cursor={false}
-                />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
-              </PieChart>
-            </ResponsiveContainer>
+            {currentTotal > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={75}
+                    paddingAngle={6}
+                    dataKey="value"
+                    stroke="none"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: 'var(--color-neo-bg)', borderColor: 'var(--border-color)', borderRadius: '12px', boxShadow: '5px 5px 15px var(--color-neo-shadow1)', color: 'var(--text-primary)' }}
+                    itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+                    cursor={false}
+                  />
+                  <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-gray-500 text-sm font-medium">No distribution data available.</div>
+            )}
           </div>
         </div>
       </div>
@@ -309,7 +313,7 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                 <div className="flex-1 w-full min-h-[180px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={data.weekday_consistency[selectedWeekday].weekly_performance}
+                      data={data.weekday_consistency[selectedWeekday].weekly_performance || []}
                       margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" opacity={0.3} vertical={false} />
@@ -318,8 +322,9 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                         stroke="#718096" 
                         fontSize={10}
                         tickFormatter={(value) => {
+                          if (!value) return '';
                           const date = new Date(value);
-                          return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                          return isNaN(date.getTime()) ? '' : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                         }}
                       />
                       <YAxis 
@@ -335,10 +340,10 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
                       />
                       <ReferenceLine y={0} stroke="#4A5568" strokeWidth={1} />
                       <Bar dataKey="return">
-                        {data.weekday_consistency[selectedWeekday].weekly_performance.map((entry, index) => (
+                        {(data.weekday_consistency[selectedWeekday].weekly_performance || []).map((entry, index) => (
                           <Cell 
                             key={`cell-${index}`} 
-                            fill={entry.return >= 0 ? '#10B981' : '#EF4444'} 
+                            fill={entry && entry.return >= 0 ? '#10B981' : '#EF4444'} 
                           />
                         ))}
                       </Bar>
