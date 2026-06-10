@@ -78,6 +78,49 @@ const GetDataDashboard = ({ onDataReceived }) => {
     }
   }, [startDate, endDate, interval]);
 
+  // Automatically adjust date selection to the maximum history range when interval changes
+  useEffect(() => {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    let daysToSubtract = 60; // Default (15m is default)
+    
+    switch (interval) {
+      case '1m':
+        daysToSubtract = 7;
+        break;
+      case '2m':
+      case '5m':
+      case '15m':
+      case '30m':
+        daysToSubtract = 60;
+        break;
+      case '1h':
+        daysToSubtract = 730; // 2 years
+        break;
+      case '1d':
+        daysToSubtract = 1825; // 5 years
+        break;
+      case '1wk':
+        daysToSubtract = 3650; // 10 years
+        break;
+      case '1mo':
+        daysToSubtract = 5475; // 15 years
+        break;
+      default:
+        daysToSubtract = 60;
+    }
+    
+    const start = new Date();
+    start.setDate(today.getDate() - daysToSubtract);
+    const startStr = start.toISOString().split('T')[0];
+    
+    setEndDate(todayStr);
+    setStartDate(startStr);
+    setError(''); // Clear any stale errors
+  }, [interval]);
+
+
   const fetchMarketData = async () => {
     if (warning) {
       setError(warning);
