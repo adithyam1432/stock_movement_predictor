@@ -21,6 +21,7 @@ const GetDataDashboard = ({ onDataReceived }) => {
   const [interval, setInterval] = useState('15m');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [warning, setWarning] = useState('');
   
   const searchRef = useRef(null);
 
@@ -57,7 +58,32 @@ const GetDataDashboard = ({ onDataReceived }) => {
     setError('');
   };
 
+  // Real-time validation for Yahoo Finance historical limitations
+  useEffect(() => {
+    if (!startDate || !endDate) return;
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (interval === '1m' && diffDays > 7) {
+      setWarning('1-minute (1m) interval is limited to the last 7 days. Please choose a closer start date or a larger interval (e.g. 5m, 15m).');
+    } else if (['2m', '5m', '15m', '30m'].includes(interval) && diffDays > 60) {
+      setWarning(`Intraday interval (${interval}) is limited to the last 60 days. Please adjust your date range.`);
+    } else if (interval === '1h' && diffDays > 730) {
+      setWarning('1-hour (1h) interval is limited to the last 2 years (730 days). Please choose a closer start date.');
+    } else {
+      setWarning('');
+    }
+  }, [startDate, endDate, interval]);
+
   const fetchMarketData = async () => {
+    if (warning) {
+      setError(warning);
+      return;
+    }
+
     if (!selectedSymbol) {
       setError('Please select a stock or index from the search suggestions.');
       return;
@@ -200,6 +226,13 @@ const GetDataDashboard = ({ onDataReceived }) => {
             </div>
           </div>
         </div>
+
+        {warning && (
+          <div className="mb-6 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm font-medium flex items-start animate-in fade-in duration-300">
+            <span className="block mt-0.5 mr-2">⚠️</span>
+            {warning}
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 rounded-lg bg-danger/10 border border-danger/30 text-danger text-sm font-medium flex items-start">
