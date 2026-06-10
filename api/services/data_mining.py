@@ -123,3 +123,98 @@ def analyze_weekday_dominance(df: pd.DataFrame):
         weekday_stats[weekday] = sorted(weekday_stats[weekday], key=lambda x: x['time'])
         
     return weekday_stats
+
+def analyze_weekday_consistency(df: pd.DataFrame):
+    """
+    Groups the dataframe by (Year, ISO Week, Weekday) and calculates the price return
+    for each weekday in each week. Then compares the performance of the same weekdays
+    across multiple past weeks to determine buying/selling consistency.
+    """
+    consistency_stats = {}
+    if 'Weekday' not in df.columns or 'Datetime' not in df.columns:
+        return consistency_stats
+        
+    df_copy = df.copy()
+    df_copy['Datetime'] = pd.to_datetime(df_copy['Datetime'])
+    df_copy['Year'] = df_copy['Datetime'].dt.isocalendar().year
+    df_copy['Week'] = df_copy['Datetime'].dt.isocalendar().week
+    
+    # Group by Year, Week, Weekday
+    grouped = df_copy.groupby(['Year', 'Week', 'Weekday'])
+    
+    weekly_perf = []
+    
+    for (year, week, weekday), group in grouped:
+        group = group.sort_values('Datetime')
+        first_open = group.iloc[0]['Open']
+        last_close = group.iloc[-1]['Close']
+        
+        # Calculate percentage return
+        pct_return = ((last_close - first_open) / first_open * 100) if first_open > 0 else 0.0
+        
+        weekly_perf.append({
+            "year": int(year),
+            "week": int(week),
+            "weekday": weekday,
+            "date": group.iloc[0]['Date'],
+            "return": round(pct_return, 4),
+            "direction": "Bullish" if pct_return > 0.001 else ("Bearish" if pct_return < -0.001 else "Neutral")
+        })
+        
+    # Group by weekday
+    by_weekday = {}
+    for perf in weekly_perf:
+        w = perf['weekday']
+        if w not in by_weekday:
+            by_weekday[w] = []
+        by_weekday[w].append(perf)
+        
+    # Sort each weekday's records by date
+    for w in by_weekday:
+        by_weekday[w] = sorted(by_weekday[w], key=lambda x: x['date'])
+        
+    # Calculate consistency metrics
+    for w, records in by_weekday.items():
+        total_weeks = len(records)
+        if total_weeks == 0:
+            continue
+            
+        bullish_weeks = sum(1 for r in records if r['return'] > 0.001)
+        bearish_weeks = sum(1 for r in records if r['return'] < -0.001)
+        neutral_weeks = total_weeks - bullish_weeks - bearish_weeks
+        
+        returns = [r['return'] for r in records]
+        avg_return = sum(returns) / total_weeks
+        
+        # Standard deviation
+        variance = sum((x - avg_return) ** 2 for x in returns) / total_weeks
+        std_return = variance ** 0.5
+        
+        # Consistency score: percent of weeks matching dominant direction
+        if bullish_weeks > bearish_weeks:
+            dominant_direction = "Bullish"
+            consistency_score = round((bullish_weeks / total_weeks) * 100, 2)
+        elif bearish_weeks > bullish_weeks:
+            dominant_direction = "Bearish"
+            consistency_score = round((bearish_weeks / total_weeks) * 100, 2)
+        else:
+            dominant_direction = "Neutral"
+            consistency_score = round((neutral_weeks / total_weeks) * 100, 2) if total_weeks > 0 else 0.0
+            
+        consistency_stats[w] = {
+            "weekday": w,
+            "total_weeks": total_weeks,
+            "bullish_weeks": bullish_weeks,
+            "bearish_weeks": bearish_weeks,
+            "neutral_weeks": neutral_weeks,
+            "bullish_weeks_ratio": round(bullish_weeks / total_weeks, 2),
+            "bearish_weeks_ratio": round(bearish_weeks / total_weeks, 2),
+            "avg_return": round(avg_return, 4),
+            "std_return": round(std_return, 4),
+            "consistency_score": consistency_score,
+            "dominant_direction": dominant_direction,
+            "weekly_performance": records
+        }
+        
+    return consistency_stats
+

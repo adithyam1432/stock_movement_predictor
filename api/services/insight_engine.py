@@ -1,4 +1,4 @@
-def generate_insights(timeframe_stats, cluster_stats, weekday_stats=None):
+def generate_insights(timeframe_stats, cluster_stats, weekday_stats=None, weekday_consistency=None):
     """
     Generates structured, categorized natural language insights based on the computed statistics.
     """
@@ -35,6 +35,15 @@ def generate_insights(timeframe_stats, cluster_stats, weekday_stats=None):
                 w_bearish = sorted_w_bearish[0]
                 insights["actionable_patterns"].append(f"{weekday} {w_bearish['time']} frequently drops into bearish dominance ({int(w_bearish['bearish_ratio']*100)}%).")
                 
+    # Weekday consistency insights
+    if weekday_consistency:
+        for weekday, stats in weekday_consistency.items():
+            if stats['total_weeks'] >= 2 and stats['consistency_score'] >= 60 and stats['dominant_direction'] in ['Bullish', 'Bearish']:
+                dir_word = "buying (bullish)" if stats['dominant_direction'] == 'Bullish' else "selling (bearish)"
+                insights["actionable_patterns"].append(
+                    f"{weekday}s consistently offer strong {dir_word} opportunities, closing {stats['dominant_direction'].lower()} in {stats['bullish_weeks'] if stats['dominant_direction'] == 'Bullish' else stats['bearish_weeks']} of {stats['total_weeks']} past weeks ({stats['consistency_score']}% consistency, average return: {stats['avg_return']}%)."
+                )
+                
     # Analyze clusters for Actionable Patterns & Volatility
     if cluster_stats:
         dominant_cluster = cluster_stats[0]
@@ -54,3 +63,4 @@ def generate_insights(timeframe_stats, cluster_stats, weekday_stats=None):
         insights["market_trend"].append("Market structure is highly balanced with no significant directional biases detected.")
         
     return insights
+

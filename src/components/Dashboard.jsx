@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, Minus, Activity, Zap, AlertTriangle } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ReferenceLine } from 'recharts';
 
 const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
   if (!data) return null;
@@ -189,6 +189,139 @@ const Dashboard = ({ data, analysisMode, selectedWeekday }) => {
           </div>
         </div>
       </div>
+
+      {/* Week-over-Week Consistency Analysis Panel */}
+      {analysisMode === 'weekday' && (
+        <div className="neo-card p-4 md:p-6 w-full animate-in slide-in-from-bottom-8 duration-700 fade-in mt-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 border-b border-gray-700/30 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="neo-inset p-2 rounded-full text-primary">
+                <Activity size={20} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-100">Week-over-Week Consistency Analysis</h3>
+                <p className="text-xs text-gray-400 mt-1">Comparing price performance of {selectedWeekday}s across past weeks</p>
+              </div>
+            </div>
+            {data.weekday_consistency && data.weekday_consistency[selectedWeekday] && (
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                data.weekday_consistency[selectedWeekday].dominant_direction === 'Bullish'
+                  ? 'bg-success/15 border-success/30 text-success'
+                  : data.weekday_consistency[selectedWeekday].dominant_direction === 'Bearish'
+                    ? 'bg-danger/15 border-danger/30 text-danger'
+                    : 'bg-gray-500/15 border-gray-500/30 text-gray-400'
+              }`}>
+                Dominant Trend: {data.weekday_consistency[selectedWeekday].dominant_direction}
+              </span>
+            )}
+          </div>
+
+          {!data.weekday_consistency || !data.weekday_consistency[selectedWeekday] || data.weekday_consistency[selectedWeekday].total_weeks < 2 ? (
+            <div className="neo-inset p-6 rounded-2xl text-center flex flex-col items-center justify-center space-y-3">
+              <AlertTriangle className="text-warning" size={36} />
+              <h4 className="text-base font-bold text-gray-200">Insufficient Week-over-Week History</h4>
+              <p className="text-xs text-gray-400 max-w-md">
+                Comparing same weekdays requires at least 2 weeks of data in the dataset. Try fetching a wider date range or using a higher frequency timeframe.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column: Consistency Metrics */}
+              <div className="flex flex-col justify-between space-y-4 neo-inset rounded-2xl p-5 border border-gray-800">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-400">Consistency Score</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {data.weekday_consistency[selectedWeekday].consistency_score}%
+                  </span>
+                </div>
+                {/* Visual Progress Bar */}
+                <div className="w-full bg-[#151719] rounded-full h-3 overflow-hidden neo-inset">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      data.weekday_consistency[selectedWeekday].dominant_direction === 'Bullish'
+                        ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.6)]'
+                        : data.weekday_consistency[selectedWeekday].dominant_direction === 'Bearish'
+                          ? 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.6)]'
+                          : 'bg-gray-500'
+                    }`} 
+                    style={{ width: `${data.weekday_consistency[selectedWeekday].consistency_score}%` }}
+                  />
+                </div>
+                
+                <div className="border-t border-gray-700/30 pt-4 grid grid-cols-2 gap-4">
+                  <div className="neo-inset p-3 rounded-xl text-center">
+                    <div className="text-[10px] text-gray-500 font-semibold mb-1 uppercase tracking-wider">Bullish Weeks</div>
+                    <div className="text-lg font-bold text-success">
+                      {data.weekday_consistency[selectedWeekday].bullish_weeks}
+                    </div>
+                    <div className="text-[9px] text-gray-400">
+                      ({Math.round(data.weekday_consistency[selectedWeekday].bullish_weeks_ratio * 100)}% of total)
+                    </div>
+                  </div>
+                  <div className="neo-inset p-3 rounded-xl text-center">
+                    <div className="text-[10px] text-gray-500 font-semibold mb-1 uppercase tracking-wider">Bearish Weeks</div>
+                    <div className="text-lg font-bold text-danger">
+                      {data.weekday_consistency[selectedWeekday].bearish_weeks}
+                    </div>
+                    <div className="text-[9px] text-gray-400">
+                      ({Math.round(data.weekday_consistency[selectedWeekday].bearish_weeks_ratio * 100)}% of total)
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-700/30 pt-4 flex justify-between text-xs text-gray-400 font-medium">
+                  <div>Avg Weekly Return: <span className={data.weekday_consistency[selectedWeekday].avg_return >= 0 ? "text-success font-bold" : "text-danger font-bold"}>{data.weekday_consistency[selectedWeekday].avg_return.toFixed(3)}%</span></div>
+                  <div>Volatility (Std Dev): <span className="text-gray-200 font-bold">{data.weekday_consistency[selectedWeekday].std_return.toFixed(3)}%</span></div>
+                </div>
+              </div>
+
+              {/* Right Column: Bar Chart */}
+              <div className="lg:col-span-2 neo-inset rounded-2xl p-4 min-h-[220px] relative flex flex-col">
+                <div className="text-xs font-semibold text-gray-400 mb-3 px-2">Week-by-Week Percentage Change (%)</div>
+                <div className="flex-1 w-full min-h-[180px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={data.weekday_consistency[selectedWeekday].weekly_performance}
+                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#2D3748" opacity={0.3} vertical={false} />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="#718096" 
+                        fontSize={10}
+                        tickFormatter={(value) => {
+                          const date = new Date(value);
+                          return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                        }}
+                      />
+                      <YAxis 
+                        stroke="#718096" 
+                        fontSize={10} 
+                        tickFormatter={(value) => `${value}%`}
+                      />
+                      <RechartsTooltip
+                        contentStyle={{ backgroundColor: 'var(--color-neo-bg)', borderColor: 'var(--border-color)', borderRadius: '12px', boxShadow: '5px 5px 15px var(--color-neo-shadow1)', color: 'var(--text-primary)' }}
+                        itemStyle={{ color: 'var(--text-primary)', fontWeight: 500 }}
+                        cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                        formatter={(value) => [`${value}%`, 'Return']}
+                      />
+                      <ReferenceLine y={0} stroke="#4A5568" strokeWidth={1} />
+                      <Bar dataKey="return">
+                        {data.weekday_consistency[selectedWeekday].weekly_performance.map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={entry.return >= 0 ? '#10B981' : '#EF4444'} 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Forecasting Panel */}
       {data.forecasts && data.forecasts.length > 0 && (

@@ -6,7 +6,7 @@ import json
 
 from api.services.data_parser import parse_and_clean_csv
 from api.services.linear_algebra import apply_pca, compute_similarity_matrix, compute_weekday_similarity_matrix
-from api.services.data_mining import cluster_candles, analyze_timeframes, analyze_weekday_dominance
+from api.services.data_mining import cluster_candles, analyze_timeframes, analyze_weekday_dominance, analyze_weekday_consistency
 from api.services.insight_engine import generate_insights
 from api.services.yfinance_service import fetch_nse_data
 from api.services.data_pipeline import clean_and_preprocess
@@ -71,8 +71,14 @@ async def analyze_csv(file: UploadFile = File(...), timeframe: str = Form(...)):
                 "close": float(pca_df['Close'].iloc[i]) if 'Close' in pca_df.columns else 0.0
             })
             
+        # Weekday Consistency Analysis
+        weekday_consistency = analyze_weekday_consistency(df)
+        
         # 5. AI Insights Engine
-        insights = generate_insights(timeframe_stats, cluster_summary, weekday_stats)
+        insights = generate_insights(timeframe_stats, cluster_summary, weekday_stats, weekday_consistency)
+        
+        # Linear Regression Forecasting
+        forecast_data = generate_forecast(df, forecast_periods=10)
         
         return {
             "status": "success",
@@ -85,6 +91,7 @@ async def analyze_csv(file: UploadFile = File(...), timeframe: str = Form(...)):
             },
             "timeframe_stats": timeframe_stats,
             "weekday_stats": weekday_stats,
+            "weekday_consistency": weekday_consistency,
             "cluster_summary": cluster_summary,
             "similarity_matrix": similarity_data,
             "weekday_matrices": weekday_matrices,
@@ -138,7 +145,10 @@ async def fetch_market(req: MarketRequest):
         pca_points = apply_pca(pca_df, n_components=2)
         pca_data = [{"x": round(point[0], 3), "y": round(point[1], 3), "cluster": int(pca_df['Cluster'].iloc[i]) if 'Cluster' in pca_df.columns else 0, "type": pca_df['Candle_Type'].iloc[i], "weekday": str(pca_df['Weekday'].iloc[i]) if 'Weekday' in pca_df.columns else "", "open": float(pca_df['Open'].iloc[i]), "close": float(pca_df['Close'].iloc[i])} for i, point in enumerate(pca_points)]
         
-        insights = generate_insights(timeframe_stats, cluster_summary, weekday_stats)
+        # Weekday Consistency Analysis
+        weekday_consistency = analyze_weekday_consistency(df)
+        
+        insights = generate_insights(timeframe_stats, cluster_summary, weekday_stats, weekday_consistency)
         
         # Linear Regression Forecasting
         forecasts = generate_forecast(df, forecast_periods=10)
@@ -154,6 +164,7 @@ async def fetch_market(req: MarketRequest):
             },
             "timeframe_stats": timeframe_stats,
             "weekday_stats": weekday_stats,
+            "weekday_consistency": weekday_consistency,
             "cluster_summary": cluster_summary,
             "similarity_matrix": similarity_data,
             "weekday_matrices": weekday_matrices,
