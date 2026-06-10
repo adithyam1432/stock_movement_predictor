@@ -67,11 +67,11 @@ const GetDataDashboard = ({ onDataReceived }) => {
     const diffTime = Math.abs(end - start);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (interval === '1m' && diffDays > 7) {
+    if (interval === '1m' && diffDays > 6) {
       setWarning('1-minute (1m) interval is limited to the last 7 days. Please choose a closer start date or a larger interval (e.g. 5m, 15m).');
-    } else if (['2m', '5m', '15m', '30m'].includes(interval) && diffDays > 60) {
+    } else if (['2m', '5m', '15m', '30m'].includes(interval) && diffDays > 59) {
       setWarning(`Intraday interval (${interval}) is limited to the last 60 days. Please adjust your date range.`);
-    } else if (interval === '1h' && diffDays > 730) {
+    } else if (interval === '1h' && diffDays > 729) {
       setWarning('1-hour (1h) interval is limited to the last 2 years (730 days). Please choose a closer start date.');
     } else {
       setWarning('');
@@ -83,20 +83,20 @@ const GetDataDashboard = ({ onDataReceived }) => {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
     
-    let daysToSubtract = 60; // Default (15m is default)
+    let daysToSubtract = 59; // Default (15m is default)
     
     switch (interval) {
       case '1m':
-        daysToSubtract = 7;
+        daysToSubtract = 6;
         break;
       case '2m':
       case '5m':
       case '15m':
       case '30m':
-        daysToSubtract = 60;
+        daysToSubtract = 59;
         break;
       case '1h':
-        daysToSubtract = 730; // 2 years
+        daysToSubtract = 729; // 2 years
         break;
       case '1d':
         daysToSubtract = 1825; // 5 years
@@ -108,7 +108,7 @@ const GetDataDashboard = ({ onDataReceived }) => {
         daysToSubtract = 5475; // 15 years
         break;
       default:
-        daysToSubtract = 60;
+        daysToSubtract = 59;
     }
     
     const start = new Date();
